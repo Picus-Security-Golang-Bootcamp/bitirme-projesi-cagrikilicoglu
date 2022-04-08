@@ -14,7 +14,7 @@ func NewProductRepository(db *gorm.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (pr *ProductRepository) create(p *models.Product) (*models.Product, error) {
+func (pr *ProductRepository) Create(p *models.Product) (*models.Product, error) {
 	zap.L().Debug("product.repo.create", zap.Reflect("product", p))
 
 	if err := pr.db.Create(p).Error; err != nil {
@@ -36,8 +36,18 @@ func (pr *ProductRepository) getAll() (*[]models.Product, error) {
 	return products, nil
 }
 
-func (pr *ProductRepository) getBySKU(id string) (*models.Product, error) {
+func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 	zap.L().Debug("product.repo.getByID", zap.Reflect("id", id))
+
+	var product *models.Product
+	if result := pr.db.First(&product, product.Stock.SKU); result.Error != nil {
+		return nil, result.Error
+	}
+	return product, nil
+}
+
+func (pr *ProductRepository) getBySKU(sku string) (*models.Product, error) {
+	zap.L().Debug("product.repo.getBySKU", zap.Reflect("SKU", sku))
 
 	var product *models.Product
 	if result := pr.db.First(&product, product.Stock.SKU); result.Error != nil {

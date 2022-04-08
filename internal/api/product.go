@@ -23,6 +23,10 @@ type Product struct {
 	// Required: true
 	CategoryName *string `json:"categoryName"`
 
+	// id
+	// Required: true
+	ID *uint32 `json:"id"`
+
 	// name
 	// Required: true
 	Name *string `json:"name"`
@@ -41,6 +45,10 @@ func (m *Product) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCategoryName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -65,6 +73,15 @@ func (m *Product) Validate(formats strfmt.Registry) error {
 func (m *Product) validateCategoryName(formats strfmt.Registry) error {
 
 	if err := validate.Required("categoryName", "body", m.CategoryName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Product) validateID(formats strfmt.Registry) error {
+
+	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
 	}
 

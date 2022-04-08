@@ -20,30 +20,6 @@ schemes:
 
 paths:
   /products:
-    post:
-      tags:
-        - "product"
-      summary: "Add a new procut to the store"
-      description: ""
-      operationId: "addProduct"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Product object that needs to be added to the store"
-          required: true
-          schema:
-            $ref: "#/definitions/Product"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Product"
-        "405":
-          description: "Invalid input"
     get:
       summary: "Get all the products in the store"
       description: ""
@@ -66,16 +42,45 @@ paths:
               $ref: "#/definitions/Product"
         "405":
           description: "Invalid input"
+  /products/create:
+    post:
+      tags:
+        - "product"
+      summary: "Add a new procut to the store"
+      description: ""
+      operationId: "addProduct"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Product object that needs to be added to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "201":
+          description: "successful create operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "405":
+          description: "Invalid input"
 
 definitions:
   Product:
     type: "object"
     required:
+      - "id"
       - "name"
       - "price"
       - "stock"
       - "categoryName"
     properties:
+      id:
+        type: "integer"
+        format: "uint32"
       name:
         type: "string"
       price:
