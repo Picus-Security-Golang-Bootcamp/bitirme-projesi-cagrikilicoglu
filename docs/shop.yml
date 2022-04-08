@@ -1,0 +1,102 @@
+swagger: "2.0"
+info:
+  description: "This is a sample shopping server.  "
+  version: "1.0.0"
+  title: "Swagger Shopping-Cart"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "mcagrikilicoglu@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/api/v1/shopping-cart-api"
+tags:
+  - name: "products"
+    description: "Everything about Products"
+
+schemes:
+  - "https"
+  - "http"
+
+paths:
+  /products:
+    post:
+      tags:
+        - "product"
+      summary: "Add a new procut to the store"
+      description: ""
+      operationId: "addProduct"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Product object that needs to be added to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "405":
+          description: "Invalid input"
+    get:
+      summary: "Get all the products in the store"
+      description: ""
+      operationId: "getProducts"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Products in the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product"
+        "405":
+          description: "Invalid input"
+
+definitions:
+  Product:
+    type: "object"
+    required:
+      - "name"
+      - "price"
+      - "stock"
+      - "categoryName"
+    properties:
+      name:
+        type: "string"
+      price:
+        type: "number"
+        format: "float"
+      stock:
+        type: "object"
+        $ref: "#/definitions/Stock"
+      categoryName:
+        type: "string"
+  Stock:
+    type: "object"
+    required:
+      - "sku"
+      - "number"
+      - "status"
+    properties:
+      sku:
+        type: "string"
+      number:
+        type: "integer"
+        format: "uint32"
+      status:
+        type: "string"

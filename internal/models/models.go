@@ -6,24 +6,25 @@ import (
 )
 
 type Stock struct {
-	SKU         string `json:"SKU"`
-	StockNumber uint   `json:"StockNumber"`
-	StockStatus string `json:"StockStatus"`
+	SKU    string `json:"sku" gorm:"unique"`
+	Number uint   `json:"number"`
+	Status string `json:"status"`
 }
 
 type Product struct {
-	*gorm.Model
-	Name     *string     `json:"description"`
-	Price    money.Money `json:"price"`
-	Stock    Stock       `json:"stock" gorm:"embedded"`
-	Category Category    `json:"category"`
+	gorm.Model
+	Name         *string `json:"description" gorm`
+	Price        float32 `json:"price"`
+	Stock        Stock   `json:"stock" gorm:"embedded"`
+	CategoryName *string
+	// Category    Category `json:"category"`
 }
 
 type Category struct {
 	*gorm.Model
-	Name        *string   `json:"name" gorm:"unique"`
+	Name        *string   `json:"name" gorm:"unique;primarykey"`
 	Description string    `json:"description"`
-	Products    []Product `json:"products"`
+	Products    []Product `json:"products" gorm:"foreignKey:ProductName"`
 }
 
 type User struct {
@@ -58,4 +59,9 @@ type Item struct {
 	Product    Product     `json:"prodcut"`
 	Quantity   uint        `json:"quantity"`
 	TotalPrice money.Money `json:"totalPrice"`
+}
+
+type Price struct {
+	Amount       uint   `json:"amount"`
+	CurrencyCode string `json:"currencyCode"`
 }
