@@ -1,6 +1,8 @@
 package product
 
 import (
+	"fmt"
+
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -24,6 +26,7 @@ func (pr *ProductRepository) Create(p *models.Product) (*models.Product, error) 
 	return p, nil
 }
 
+// TODO getirirken order olsun
 func (pr *ProductRepository) getAll() (*[]models.Product, error) {
 	zap.L().Debug("product.repo.getAll")
 
@@ -40,7 +43,8 @@ func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 	zap.L().Debug("product.repo.getByID", zap.Reflect("id", id))
 
 	var product *models.Product
-	if result := pr.db.First(&product, product.Stock.SKU); result.Error != nil {
+	if result := pr.db.First(&product, id); result.Error != nil {
+		zap.L().Error("product.repo.getByID failed to get products", zap.Error(result.Error))
 		return nil, result.Error
 	}
 	return product, nil
@@ -50,20 +54,25 @@ func (pr *ProductRepository) getBySKU(sku string) (*models.Product, error) {
 	zap.L().Debug("product.repo.getBySKU", zap.Reflect("SKU", sku))
 
 	var product *models.Product
-	if result := pr.db.First(&product, product.Stock.SKU); result.Error != nil {
+	result := pr.db.Where(&models.Product{Stock: models.Stock{SKU: sku}}).Find(&product)
+	if result.Error != nil {
+		zap.L().Error("product.repo.getBySKU failed to get products", zap.Error(result.Error))
 		return nil, result.Error
 	}
 	return product, nil
 }
 
-func (pr *ProductRepository) getByName(name string) ([]*models.Product, error) {
+func (pr *ProductRepository) getByName(name string) (*[]models.Product, error) {
 	zap.L().Debug("product.repo.getByName", zap.Reflect("name", name))
 
-	var products = []*models.Product{}
-	if result := pr.db.Where("name ILIKE ?", "%"+name+"%").Find(&products); result.Error != nil {
+	var products = []models.Product{}
+	result := pr.db.Where("Name ILIKE ?", "%"+name+"%").Find(&products)
+	fmt.Println(result)
+	if result.Error != nil {
+		zap.L().Error("product.repo.getByName failed to get products", zap.Error(result.Error))
 		return nil, result.Error
 	}
-	return products, nil
+	return &products, nil
 }
 
 func (pr *ProductRepository) update(p *models.Product) (*models.Product, error) {
