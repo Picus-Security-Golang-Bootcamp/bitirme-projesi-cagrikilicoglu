@@ -22,7 +22,7 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository) {
 }
 
 func (p *productHandler) getAll(c *gin.Context) {
-	products, err := p.repo.GetAll()
+	products, err := p.repo.getAll()
 	if err != nil {
 		return // TODO respond with error ekle
 	}
