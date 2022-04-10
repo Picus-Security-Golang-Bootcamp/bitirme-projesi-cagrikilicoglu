@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/Rhymond/go-money"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +13,7 @@ type Stock struct {
 
 type Product struct {
 	gorm.Model
-	Name         *string `json:"description" gorm`
+	Name         *string `json:"description"`
 	Price        float32 `json:"price"`
 	Stock        Stock   `json:"stock" gorm:"embedded"`
 	CategoryName *string
@@ -29,39 +29,69 @@ type Category struct {
 
 type User struct {
 	*gorm.Model
-	Email     *string `json:"email" gorm:"unique;primaryKey"`
-	Password  *string `json:"password"`
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	ZipCode   string  `json:"zipCode"`
-	Role      string  `json:"role"`
-	Cart      Cart    `json:"cart"`
+	ID        uuid.UUID `json:"id"`
+	Email     *string   `json:"email" gorm:"unique"`
+	Password  *string   `json:"password"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	ZipCode   string    `json:"zipCode"`
+	Role      string    `json:"role"`
+	// CartID    uint      `json:"cartId"`
+	Cart Cart `json:"cart"`
 }
 
 type Cart struct {
 	*gorm.Model
-	User  *User       `json:"user" gorm:"unique"`
-	Items []Item      `json:"items"`
-	Total money.Money `json:"total"`
+	ID         uuid.UUID `json:"id"`
+	UserID     uuid.UUID `json:"userId"`
+	Items      []Item    `json:"items"`
+	TotalPrice float32   `json:"totalPrice"`
 }
 
 type Order struct {
 	*gorm.Model
-	User           *User       `json:"user" gorm:"unique"`
-	Items          []Item      `json:"items"`
-	Total          money.Money `json:"total"`
-	OrderStatus    string      `json:"orderStatus"`
-	TrackingNumber string      `json:"trackingNumber"`
+	User           *User   `json:"user" gorm:"unique"`
+	Items          []Item  `json:"items"`
+	TotalPrice     float32 `json:"totalPrice"`
+	OrderStatus    string  `json:"orderStatus"`
+	TrackingNumber string  `json:"trackingNumber"`
 }
 
 type Item struct {
 	*gorm.Model
-	Product    Product     `json:"prodcut"`
-	Quantity   uint        `json:"quantity"`
-	TotalPrice money.Money `json:"totalPrice"`
+	ProductID  string  `json:"product"`
+	Product    Product `json:"prodcut"`
+	Quantity   uint    `json:"quantity"`
+	TotalPrice float32 `json:"totalPrice"`
+	CartID     string  `json:"cart"`
+	OrderID    string  `json:"orderID, omitempty"`
 }
 
 type Price struct {
 	Amount       uint   `json:"amount"`
 	CurrencyCode string `json:"currencyCode"`
 }
+
+// type Role struct {
+// 	Role string `json:"role"`
+// }
+
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
+	u.Cart.ID = uuid.New()
+	// TODO erroru handle et
+	// if !u.IsValid() {
+	// 	err = errors.New("can't save invalid data")
+	// }
+	return
+}
+
+// func (c *Cart) BeforeCreate(tx *gorm.DB) (err error) {
+// 	c.ID = uuid.New()
+
+// 	// if !u.IsValid() {
+// 	// 	err = errors.New("can't save invalid data")
+// 	// }
+// 	return
+// }
+//

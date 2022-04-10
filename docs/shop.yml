@@ -67,8 +67,41 @@ paths:
             $ref: "#/definitions/Product"
         "405":
           description: "Invalid input"
-  /login:
+  /signup:
     get:
+      tags:
+        - "user"
+      summary: "Register user into the system"
+      description: ""
+      operationId: "signupUser"
+      produces:
+        # - "application/xml"
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "user object that needs to be registered in to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        "201":
+          description: "successful operation"
+          schema:
+            type: "string"
+          headers:
+            X-Rate-Limit:
+              type: "integer"
+              format: "int32"
+              description: "calls per hour allowed by the user"
+            X-Expires-After:
+              type: "string"
+              format: "date-time"
+              description: "date in UTC when token expires"
+        "400":
+          description: "Invalid input"
+  /login:
+    post:
       tags:
         - "user"
       summary: "Logs user into the system"
@@ -137,6 +170,25 @@ definitions:
         type: "integer"
         format: "uint32"
       status:
+        type: "string"
+  User:
+    type: "object"
+    required:
+      - "email"
+      - "password"
+      - "firstName"
+      - "lastName"
+      - "zipCode"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      zipCode:
         type: "string"
   Login:
     type: "object"

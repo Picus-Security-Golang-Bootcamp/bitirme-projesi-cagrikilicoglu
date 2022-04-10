@@ -11,8 +11,10 @@ import (
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/auth"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/user"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/database"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/logging"
@@ -59,6 +61,8 @@ func main() {
 
 	log.Println("Postgress connected")
 
+	//////------//////////
+
 	router := gin.Default()
 	// TODO custom format ekle -- middleware klasörüne al
 	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
@@ -85,15 +89,20 @@ func main() {
 
 	baseRooter := router.Group(cfg.ServerConfig.RoutePrefix)
 	productRooter := baseRooter.Group("/products")
+	authRouter := baseRooter.Group("/user") // TODO başından user'ı sil
+
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
-
-	// TODO başından user'ı sil
-	authRouter := baseRooter.Group("/user")
-
 	product.NewProductHandler(productRooter, productRepo)
 
 	auth.NewAuthHandler(authRouter, cfg)
+
+	userRepo := user.NewUserRepository(db)
+	userRepo.Migration()
+	user.NewUserHandler(baseRooter, userRepo) // TODO base routter değiştiilebilir
+
+	cartRepo := cart.NewCartRepository(db)
+	cartRepo.Migration()
 	// SampleQueries(*productRepo)
 
 	// TODO aşağıdaki fonksiyonu kontrol et
