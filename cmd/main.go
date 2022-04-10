@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/cagrikilicoglu/shopping-basket/internal/auth"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
@@ -89,13 +88,13 @@ func main() {
 
 	baseRooter := router.Group(cfg.ServerConfig.RoutePrefix)
 	productRooter := baseRooter.Group("/products")
-	authRouter := baseRooter.Group("/user") // TODO başından user'ı sil
+	// authRouter := baseRooter.Group("/user") // TODO başından user'ı sil
 
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
 	product.NewProductHandler(productRooter, productRepo)
 
-	auth.NewAuthHandler(authRouter, cfg)
+	// auth.NewAuthHandler(authRouter, cfg)
 
 	userRepo := user.NewUserRepository(db)
 	userRepo.Migration()
