@@ -9,13 +9,17 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/cagrikilicoglu/shopping-basket/internal/auth"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/database"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -56,6 +60,21 @@ func main() {
 	log.Println("Postgress connected")
 
 	router := gin.Default()
+	// TODO custom format ekle -- middleware klasörüne al
+	router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		// your custom format
+		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+			param.ClientIP,
+			param.TimeStamp.Format(time.RFC1123),
+			param.Method,
+			param.Path,
+			param.Request.Proto,
+			param.StatusCode,
+			param.Latency,
+			param.Request.UserAgent(),
+			param.ErrorMessage,
+		)
+	}))
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.ServerConfig.Port),
@@ -69,17 +88,44 @@ func main() {
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
 
+	// TODO başından user'ı sil
+	authRouter := baseRooter.Group("/user")
+
 	product.NewProductHandler(productRooter, productRepo)
 
+	auth.NewAuthHandler(authRouter, cfg)
 	// SampleQueries(*productRepo)
 
+	// TODO aşağıdaki fonksiyonu kontrol et
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
 
+	baseRooter.GET("/health", checkHealth)
+	// TODO aşağıyı anonymous func gibi handle etmeli?
+	// baseRooter.GET("/ready", checkReady())
 	GracefulShutdown(srv, 15*time.Second)
+}
+
+func checkHealth(c *gin.Context) {
+	response.RespondWithJson(c, http.StatusOK, nil)
+}
+
+func checkReady(c *gin.Context, db *gorm.DB) {
+	DB, err := db.DB()
+	if err != nil {
+		zap.L().Fatal("cannot get sql database instance", zap.Error(err))
+		response.RespondWithError(c, err)
+		return
+	}
+	if err := DB.Ping(); err != nil {
+		zap.L().Fatal("cannot ping database", zap.Error(err))
+		response.RespondWithError(c, err)
+		return
+	}
+	response.RespondWithJson(c, http.StatusOK, nil)
 }
 
 func SampleQueries(productRepo product.ProductRepository) {

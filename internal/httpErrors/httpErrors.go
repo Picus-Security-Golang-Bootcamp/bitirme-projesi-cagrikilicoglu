@@ -31,6 +31,7 @@ var (
 	RequestTimeoutError = errors.New("Request Timeout")
 	CannotBindGivenData = errors.New("Could not bind given data")
 	ValidationError     = errors.New("Validation failed for given payload")
+	ForbiddenError      = errors.New("Forbidden")
 )
 
 func (a ApiError) Status() int {
@@ -69,6 +70,8 @@ func ParseErrors(err error) ApiErr {
 		return NewApiError(http.StatusBadRequest, CannotBindGivenData.Error(), err)
 	case strings.Contains(err.Error(), "validation"):
 		return NewApiError(http.StatusBadRequest, ValidationError.Error(), err)
+	case strings.Contains(err.Error(), "not allowed"):
+		return NewApiError(http.StatusForbidden, ForbiddenError.Error(), err)
 	default:
 		if apiErr, ok := err.(ApiErr); ok {
 			return apiErr

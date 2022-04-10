@@ -11,6 +11,7 @@ ServerConfig:
 JWTConfig:
   SessionTime: 3600
   SecretKey: dummySecretKey
+  SecretKetRefresh: refreshSecretKey
 
 DBConfig:
   DataSourceName: user=postgres dbname=shopping-basket-app password=Gopher822 host=localhost sslmode=disable

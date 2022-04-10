@@ -29,8 +29,9 @@ type ServerConfig struct {
 
 // JWTConfig
 type JWTConfig struct {
-	SessionTime int    `yaml:"SessionTime"`
-	SecretKey   string `yaml:"SecretKey"`
+	SessionTime      int    `yaml:"SessionTime"`
+	SecretKey        string `yaml:"SecretKey"`
+	RefreshSecretKey string `yaml:"RefreshSecretKey"`
 }
 
 // DBConfig
