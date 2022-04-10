@@ -27,16 +27,46 @@ func (pr *ProductRepository) Create(p *models.Product) (*models.Product, error) 
 }
 
 // TODO getirirken order olsun
-func (pr *ProductRepository) getAll() (*[]models.Product, error) {
+func (pr *ProductRepository) getAll(pageIndex, pageSize int) (*[]models.Product, int, error) {
 	zap.L().Debug("product.repo.getAll")
 
 	var products *[]models.Product
-	if err := pr.db.Find(&products).Error; err != nil {
-		zap.L().Error("product.repo.getAll failed to get products", zap.Error(err))
-		return nil, err
+	count, err := pr.GetCount()
+	if err != nil {
+		return nil, -1, err
 	}
 
-	return products, nil
+	// // TODO BURAYı getcount gibi bir fonksiyonla handle edebiliriz.
+	// if err := pr.db.Find(&products).Count(&count).Error; err != nil {
+	// 	zap.L().Error("product.repo.getAll failed to get products count", zap.Error(err))
+	// 	return nil, -1, err
+	// }
+	// TODO handle -1
+	if err := pr.db.Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&products).Error; err != nil {
+		zap.L().Error("product.repo.getAll failed to get products", zap.Error(err))
+		return nil, -1, err
+	}
+	// result := pr.db.Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&products).Count(&count)
+	// if err := result.Error; err != nil {
+	// 	zap.L().Error("product.repo.getAll failed to get products", zap.Error(err))
+	// 	return nil, -1, err
+	// }
+
+	zap.L().Debug("count")
+	zap.Reflect("count", count)
+	fmt.Println(count)
+	return products, count, nil
+}
+
+func (pr *ProductRepository) GetCount() (int, error) {
+	var count int64
+	var products *[]models.Product
+	// TODO BURAYı getcount gibi bir fonksiyonla handle edebiliriz.
+	if err := pr.db.Find(&products).Count(&count).Error; err != nil {
+		zap.L().Error("product.repo.getAll failed to get products count", zap.Error(err))
+		return -1, err
+	}
+	return int(count), nil
 }
 
 func (pr *ProductRepository) getByID(id string) (*models.Product, error) {

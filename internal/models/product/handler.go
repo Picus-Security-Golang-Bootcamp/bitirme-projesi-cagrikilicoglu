@@ -6,6 +6,7 @@ import (
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/pagination"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
 )
@@ -28,12 +29,18 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository) {
 }
 
 func (p *productHandler) getAll(c *gin.Context) {
-	products, err := p.repo.getAll()
+
+	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
+
+	products, count, err := p.repo.getAll(pageIndex, pageSize)
 	if err != nil {
 		response.RespondWithError(c, err)
 		return
 	}
-	response.RespondWithJson(c, http.StatusOK, productsToResponse(products))
+	paginatedResult := pagination.NewFromGinRequest(c, count)
+	paginatedResult.Items = productsToResponse(products)
+	c.Header("Page Links", paginatedResult.BuildLinkHeader(c.Request.URL.Path, pageSize))
+	response.RespondWithJson(c, http.StatusOK, paginatedResult)
 	// c.JSON(http.StatusOK, productsToResponse(products))
 }
 
