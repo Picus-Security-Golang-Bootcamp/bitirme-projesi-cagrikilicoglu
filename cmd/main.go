@@ -22,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -96,11 +97,11 @@ func main() {
 
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
-	product.NewProductHandler(productRooter, productRepo)
+	product.NewProductHandler(productRooter, productRepo, cfg)
 
 	categoryRepo := category.NewCategoryRepository(db)
 	categoryRepo.Migration()
-	category.NewCategoryHandler(categoryRouter, categoryRepo)
+	category.NewCategoryHandler(categoryRouter, categoryRepo, cfg)
 
 	// auth.NewAuthHandler(authRouter, cfg)
 
@@ -110,6 +111,8 @@ func main() {
 	userRepo := user.NewUserRepository(db)
 	userRepo.Migration()
 	user.NewUserHandler(baseRooter, userRepo, auth) // TODO base routter değiştiilebilir
+
+	// CreateAdmin(userRepo)
 
 	cartRepo := cart.NewCartRepository(db)
 	cartRepo.Migration()
@@ -127,6 +130,30 @@ func main() {
 	// TODO aşağıyı anonymous func gibi handle etmeli?
 	// baseRooter.GET("/ready", checkReady())
 	GracefulShutdown(srv, 15*time.Second)
+}
+
+// TODO aşağıdaki fonksiyonları sil
+func getHash(pwd []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+	if err != nil {
+		log.Println(err) // TODO başka şekilde handle et
+	}
+	return string(hash)
+}
+
+func CreateAdmin(userRepo *user.UserRepository) {
+	admin := "admin1234.com"
+	adminPass := getHash([]byte("admin1234"))
+	u := models.User{
+		Email:     &admin,
+		Password:  &adminPass,
+		FirstName: admin,
+		LastName:  admin,
+		Role:      "admin",
+		ZipCode:   admin,
+	}
+	userRepo.Create(&u)
+
 }
 
 func checkHealth(c *gin.Context) {

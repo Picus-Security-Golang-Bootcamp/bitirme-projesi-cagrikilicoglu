@@ -2,29 +2,32 @@ package product
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/pagination"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
+	"go.uber.org/zap"
 )
 
 type productHandler struct {
 	repo *ProductRepository
 }
 
-// type ApiResponse struct {
-// 	Payload interface{} `json:"data"`
-// }
-
-func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository) {
+func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository, cfg *config.Config) {
+	// r.Use(middleware.AuthMiddleware(cfg.JWTConfig.SecretKey))
 	h := &productHandler{repo: repo}
 	r.GET("/", h.getAll)
-	r.POST("/create", h.create)
-	r.GET("/:id", h.getByID)
-	// r.GET("", h.getBySKU)
+	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
+	r.POST("/upload", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.createFromFile)
+	r.GET("/id/:id", h.getByID)
+	r.GET("/sku/:sku", h.getBySKU)
 	r.GET("", h.getByName)
 }
 
@@ -61,10 +64,11 @@ func (p *productHandler) create(c *gin.Context) {
 		response.RespondWithError(c, err)
 	}
 
-	response.RespondWithJson(c, http.StatusCreated, product)
+	response.RespondWithJson(c, http.StatusCreated, productToResponse(product))
 	// c.JSON(http.StatusOK, productsToResponse(products))
 }
 
+// TODO
 func (p *productHandler) getByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -76,21 +80,50 @@ func (p *productHandler) getByID(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, productToResponse(product))
 }
 
-// func (p *productHandler) getByQuery(c *gin.Context) {
-// 	queryParams := c.Request.URL.Query()
-// 	sku := queryParams["sku"]
-// 	if sku != "" {
+func (p *productHandler) createFromFile(c *gin.Context) {
+	data, err := c.FormFile("file")
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	// TODO content type'ı check et
+	// fileType := data.Header.Get("Content-Type")
+	// if fileType != "application/CSV" {
+	// 	response.RespondWithError(c, errors.New("wrong file type"))
+	// 	return
+	// }
+	results, err := readProductsWithWorkerPool(data)
+	if err != nil {
+		response.RespondWithError(c, errors.New("file cannot be read"))
+	}
+	// TODO hangilerinin succesful hangilerin unsuccesfull olduğunu ekle
+	var successfulCategories []models.Product
+	var unsuccessfulCategories []models.Product
+	for i, v := range results {
+		product, err := p.repo.Create(&results[i])
+		if err != nil {
+			// tempCat := results[i]
+			unsuccessfulCategories = append(unsuccessfulCategories, v)
+			continue
+		}
+		successfulCategories = append(successfulCategories, *product)
+	}
+	if len(successfulCategories) > 0 {
+		response.RespondWithJson(c, http.StatusCreated, productsToResponse(&successfulCategories))
+	}
+	//TODO burası pointer arrayi dönüyor Mutlaka bak
+	if len(unsuccessfulCategories) > 0 {
+		zap.L().Debug("unsuccessfulCategories", zap.Reflect("uns", unsuccessfulCategories))
+		// responseCat := categoriesToResponse(&unsuccessfulCategories)
+		response.RespondWithError(c, fmt.Errorf("Products %v already exists", productsToResponse(&unsuccessfulCategories)))
+	}
 
-// 	}
-// }
+}
 
 //---------------BURADA KALDIN--------
 func (p *productHandler) getBySKU(c *gin.Context) {
-	sku, ok := c.GetQuery("sku")
-	if !ok {
-		response.RespondWithError(c, errors.New("not Found"))
-		return
-	}
+	sku := c.Param("sku")
+
 	product, err := p.repo.getBySKU(sku)
 	if err != nil {
 		response.RespondWithError(c, err)
@@ -119,25 +152,3 @@ func (p *productHandler) getByName(c *gin.Context) {
 	}
 	response.RespondWithJson(c, http.StatusOK, productsToResponse(products))
 }
-
-// // respondWithJson: creates responses to the request in a standardized structure
-// func respondWithJson(c *gin.Context, code int, payload interface{}) {
-// 	// data := ApiResponse{
-// 	// 	Payload: payload,
-// 	// }
-// 	// response, err := json.Marshal(data)
-// 	// if err != nil {
-// 	// 	// respondWithError(w, httpErrors.ParseErrors(err))
-// 	// 	return
-// 	// }
-
-// 	codeStr := strconv.Itoa(code) // TODO daha iyi handle et
-// 	c.Header("code", codeStr)
-// 	c.JSON(code, payload)
-// }
-
-// // respondWithError: creates responses when an error occurs in a standardized structure
-// func respondWithError(c *gin.Context, err error) {
-// 	a := httpErrors.ParseErrors(err)
-// 	respondWithJson(c, a.Status(), a.Error())
-// }

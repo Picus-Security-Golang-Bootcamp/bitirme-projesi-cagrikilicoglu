@@ -8,6 +8,8 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/pagination"
 	"go.uber.org/zap"
 
@@ -24,16 +26,32 @@ type categoryHandler struct {
 // 	Payload interface{} `json:"data"`
 // }
 
-func NewCategoryHandler(r *gin.RouterGroup, repo *CategoryRepository) {
+func NewCategoryHandler(r *gin.RouterGroup, repo *CategoryRepository, cfg *config.Config) {
 	h := &categoryHandler{repo: repo}
-	r.POST("/create", h.create)
-	r.POST("/upload", h.createFromFile)
+
+	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
+	r.POST("/upload", h.createFromFile, middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
 	r.GET("/", h.getAll)
+	r.GET("/:name", h.getByName)
+	// r.Use(middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey))
 	// r.POST("/create", h.create)
 	// r.GET("/:id", h.getByID)
 	// // r.GET("", h.getBySKU)
 	// r.GET("", h.getByName)
 }
+
+func (ch *categoryHandler) getByName(c *gin.Context) {
+	name := c.Param("name")
+	zap.L().Debug("category.handler.getByName", zap.Reflect("name", name))
+
+	category, err := ch.repo.getByNameWithProducts(name)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	response.RespondWithJson(c, http.StatusOK, category.Products)
+}
+
 func (ch *categoryHandler) getAll(c *gin.Context) {
 	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
 

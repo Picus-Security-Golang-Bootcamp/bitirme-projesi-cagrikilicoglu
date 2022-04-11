@@ -70,3 +70,15 @@ func (cr *CategoryRepository) getAll(pageIndex, pageSize int) (*[]models.Categor
 	// fmt.Println(count)
 	return categories, count, nil
 }
+
+func (cr *CategoryRepository) getByNameWithProducts(name string) (*models.Category, error) {
+	zap.L().Debug("category.repo.getByName", zap.Reflect("name", name))
+
+	var category *models.Category
+	if result := cr.db.Preload("Products").Where("name = ?", name).First(&category); result.Error != nil {
+		zap.L().Error("category.repo.getByName failed to get products", zap.Error(result.Error))
+		return nil, result.Error
+	}
+	zap.L().Debug("category.repo.getByName", zap.Reflect("name", category.Products))
+	return category, nil
+}

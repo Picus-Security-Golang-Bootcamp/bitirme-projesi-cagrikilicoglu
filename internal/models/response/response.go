@@ -7,6 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// type ApiResponse struct {
+// 	Payload interface{} `json:"data"`
+// }
+
 // respondWithJson: creates responses to the request in a standardized structure
 func RespondWithJson(c *gin.Context, code int, payload interface{}) {
 	// data := ApiResponse{

@@ -96,6 +96,14 @@ func (c *Category) BeforeCreate(tx *gorm.DB) (err error) {
 	// }
 	return
 }
+func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
+	p.ID = uuid.New()
+	// TODO erroru handle et
+	// if !u.IsValid() {
+	// 	err = errors.New("can't save invalid data")
+	// }
+	return
+}
 
 type Tokens struct {
 	AccessToken  string
