@@ -12,21 +12,21 @@ type Stock struct {
 }
 
 type Product struct {
-	gorm.Model
+	*gorm.Model
 	ID           uuid.UUID `json:"id"`
 	Name         *string   `json:"description"`
 	Price        float32   `json:"price"`
 	Stock        Stock     `json:"stock" gorm:"embedded"`
-	CategoryName *string
-	// Category    Category `json:"category"`
+	CategoryName *string   `json:"categoryName"`
+	// Category     Category  `json:"category"`
 }
 
 type Category struct {
 	*gorm.Model
 	ID          uuid.UUID `json:"id"`
-	Name        *string   `json:"name" gorm:"unique;primarykey"`
+	Name        *string   `json:"name" gorm:"unique"`
 	Description string    `json:"description"`
-	Products    []Product `json:"products" gorm:"foreignKey:ProductName"`
+	Products    []Product `json:"products" gorm:"foreignKey:CategoryName"`
 }
 
 type User struct {
@@ -81,6 +81,15 @@ type Price struct {
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	u.Cart.ID = uuid.New()
+	// TODO erroru handle et
+	// if !u.IsValid() {
+	// 	err = errors.New("can't save invalid data")
+	// }
+	return
+}
+
+func (c *Category) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ID = uuid.New()
 	// TODO erroru handle et
 	// if !u.IsValid() {
 	// 	err = errors.New("can't save invalid data")

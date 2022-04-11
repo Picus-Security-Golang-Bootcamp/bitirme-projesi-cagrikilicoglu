@@ -15,9 +15,9 @@ type productHandler struct {
 	repo *ProductRepository
 }
 
-type ApiResponse struct {
-	Payload interface{} `json:"data"`
-}
+// type ApiResponse struct {
+// 	Payload interface{} `json:"data"`
+// }
 
 func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository) {
 	h := &productHandler{repo: repo}

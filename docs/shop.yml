@@ -188,7 +188,7 @@ paths:
           description: "Invalid id supplied"
         "404":
           description: "Product not found"
-  /product/search:
+  /products/search:
     get:
       tags:
         - "Product"

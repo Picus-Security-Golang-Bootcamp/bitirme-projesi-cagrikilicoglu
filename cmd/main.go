@@ -11,6 +11,7 @@ import (
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/category"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/user"
@@ -87,13 +88,19 @@ func main() {
 		Handler:      router,
 	}
 
+	// TODO rooterları düzelt
 	baseRooter := router.Group(cfg.ServerConfig.RoutePrefix)
 	productRooter := baseRooter.Group("/products")
+	categoryRouter := baseRooter.Group("/categories")
 	// authRouter := baseRooter.Group("/user") // TODO başından user'ı sil
 
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
 	product.NewProductHandler(productRooter, productRepo)
+
+	categoryRepo := category.NewCategoryRepository(db)
+	categoryRepo.Migration()
+	category.NewCategoryHandler(categoryRouter, categoryRepo)
 
 	// auth.NewAuthHandler(authRouter, cfg)
 
@@ -106,6 +113,7 @@ func main() {
 
 	cartRepo := cart.NewCartRepository(db)
 	cartRepo.Migration()
+
 	// SampleQueries(*productRepo)
 
 	// TODO aşağıdaki fonksiyonu kontrol et

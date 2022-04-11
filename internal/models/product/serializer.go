@@ -3,15 +3,14 @@ package product
 import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
-	"gorm.io/gorm"
 )
 
 func productToResponse(p *models.Product) *api.Product {
 
 	stockNum := uint32(p.Stock.Number)
-	idNum := uint32(p.ID)
+	// idNum := uint32(p.ID)
 	return &api.Product{
-		ID:           &idNum,
+		// ID:           &idNum,
 		CategoryName: p.CategoryName,
 		Name:         p.Name,
 		Price:        &p.Price,
@@ -35,7 +34,7 @@ func productsToResponse(ps *[]models.Product) []*api.Product {
 func responseToProduct(ap *api.Product) *models.Product {
 	stockNum := uint(*ap.Stock.Number)
 	return &models.Product{
-		Model: gorm.Model{ID: uint(*ap.ID)},
+		// Model: gorm.Model{ID: uint(*ap.ID)},
 		Name:  ap.Name,
 		Price: *ap.Price,
 		Stock: models.Stock{
