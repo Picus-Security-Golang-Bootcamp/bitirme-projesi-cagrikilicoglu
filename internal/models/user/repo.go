@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -33,9 +34,23 @@ func (ur *UserRepository) GetUser(email, password string) (*models.User, error) 
 	zap.Reflect("password", password)
 
 	var user *models.User
-	if err := ur.db.Where(&models.User{Email: &email, Password: &password}).First(&user).Error; err != nil {
+	// if err := ur.db.Where(&models.User{Email: &email, Password: &password}).First(&user).Error; err != nil {
+	// 	zap.L().Error("User.repo.getUser failed to get User", zap.Error(err))
+	// 	return nil, err
+	// }
+
+	if err := ur.db.Where(&models.User{Email: &email}).First(&user).Error; err != nil {
 		zap.L().Error("User.repo.getUser failed to get User", zap.Error(err))
 		return nil, err
 	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
+	if err != nil {
+		zap.Reflect("password", *user.Password)
+		zap.Reflect("password", password)
+		zap.L().Error("User.repo.getUser failed to get Pasword", zap.Error(err))
+		return nil, err
+	}
+
 	return user, nil
 }

@@ -86,6 +86,11 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+type Tokens struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 // func (c *Cart) BeforeCreate(tx *gorm.DB) (err error) {
 // 	c.ID = uuid.New()
 

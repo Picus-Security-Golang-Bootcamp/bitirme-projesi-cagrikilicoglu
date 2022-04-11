@@ -1,5 +1,86 @@
 package auth
 
+import (
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/cagrikilicoglu/shopping-basket/internal/models"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/jwtHelper"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+)
+
+type Authenticator struct {
+	cfg *config.Config
+}
+
+func NewAuthenticator(cfg *config.Config) *Authenticator {
+	return &Authenticator{cfg: cfg}
+}
+
+func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.Tokens {
+
+	// zap.L().Debug("authenticator.authenticate.jwtaccessclaims.before",
+	// 	zap.Reflect("key", a.cfg.JWTConfig.SecretKey))
+	// TODO aşağıdakiler debug için
+	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
+		zap.Reflect("id", id),
+		zap.Reflect("email", email),
+		zap.Reflect("role", role))
+	jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userID": id,
+		"email":  email,
+		"iat":    time.Now().Unix(),
+		"iss":    os.Getenv("APP_ENV"),
+		"exp":    time.Now().Add(15 * time.Minute).Unix(),
+		// "exp":   time.Now().Add(30 * time.Second).Unix(),
+		"roles": role,
+	})
+	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
+		zap.Reflect("jwtAccesClaims", jwtAccessClaims))
+	zap.L().Debug("authenticator.authenticate.secret",
+		zap.Reflect("secretKey", a.cfg.JWTConfig.SecretKey))
+
+	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.cfg.JWTConfig.SecretKey)
+	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
+		zap.Reflect("accesstoken", accessToken))
+
+	jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userID": id,
+		"email":  email,
+		"iat":    time.Now().Unix(),
+		"iss":    os.Getenv("APP_ENV"),
+		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"roles":  role,
+	})
+
+	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.cfg.JWTConfig.RefreshSecretKey)
+
+	tokens := models.Tokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return tokens
+}
+func (a *Authenticator) VerifyAccessToken(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	decodedToken := jwtHelper.VerifyToken(token, a.cfg.JWTConfig.SecretKey)
+	response.RespondWithJson(c, http.StatusOK, decodedToken)
+
+}
+func (a *Authenticator) VerifyRefreshToken(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	decodedToken := jwtHelper.VerifyToken(token, a.cfg.JWTConfig.RefreshSecretKey)
+	response.RespondWithJson(c, http.StatusOK, decodedToken)
+
+}
+
 // import (
 // 	"errors"
 // 	"net/http"

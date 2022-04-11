@@ -3,35 +3,33 @@ package user
 import (
 	"errors"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
-	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
-	"github.com/cagrikilicoglu/shopping-basket/pkg/jwtHelper"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
-	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 )
 
 type userHandler struct {
 	repo *UserRepository
-	cfg  *config.Config
+	auth *auth.Authenticator
 }
 
 // type authHandler struct {
 // 	cfg *config.Config
 // }
 
-type Tokens struct {
-	AccessToken  string
-	RefreshToken string
-}
+// type Tokens struct {
+// 	AccessToken  string
+// 	RefreshToken string
+// }
 
-func NewUserHandler(r *gin.RouterGroup, repo *UserRepository) {
-	h := &userHandler{repo: repo}
+func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authenticator) {
+	h := &userHandler{repo: repo,
+		auth: auth}
 
 	r.POST("/signup", h.createUser)
 	r.POST("/login", h.Login)
@@ -57,8 +55,11 @@ func (u *userHandler) createUser(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
+	var tokens models.Tokens
+	tokens = u.auth.Authenticate(user.ID, *user.Email, user.Role)
+	response.RespondWithJson(c, http.StatusCreated, tokens)
 
-	response.RespondWithJson(c, http.StatusCreated, user)
+	// response.RespondWithJson(c, http.StatusCreated, user)
 }
 
 // TODO ayrı bi servis olmalı
@@ -73,52 +74,90 @@ func (u *userHandler) Login(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
+	// encryptedPassword := getHash([]byte(*loginBody.Password))
+	zap.L().Debug("User.handler.loginUser.PASS", zap.Reflect("encrypt", *loginBody.Password))
+	// zap.L().Debug("User.handler.loginUser.encrypt", zap.Reflect("encrypt", encryptedPassword))
 	user, err := u.repo.GetUser(*loginBody.Email, *loginBody.Password)
 	if err != nil || user == nil {
 		response.RespondWithError(c, errors.New("wrong credentials"))
 		return
 	}
 
-	jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": user.ID,
-		"email":  user.Email,
-		"iat":    time.Now().Unix(),
-		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(15 * time.Minute).Unix(),
-		// "exp":   time.Now().Add(30 * time.Second).Unix(),
-		"roles": user.Role,
-	})
+	// jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// 	"userID": user.ID,
+	// 	"email":  user.Email,
+	// 	"iat":    time.Now().Unix(),
+	// 	"iss":    os.Getenv("APP_ENV"),
+	// 	"exp":    time.Now().Add(15 * time.Minute).Unix(),
+	// 	// "exp":   time.Now().Add(30 * time.Second).Unix(),
+	// 	"roles": user.Role,
+	// })
 
-	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, u.cfg.JWTConfig.SecretKey)
+	// accessToken := jwtHelper.GenerateToken(jwtAccessClaims, u.cfg.JWTConfig.SecretKey)
 
-	jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": user.ID,
-		"email":  user.Email,
-		"iat":    time.Now().Unix(),
-		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
-		"roles":  user.Role,
-	})
+	// jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// 	"userID": user.ID,
+	// 	"email":  user.Email,
+	// 	"iat":    time.Now().Unix(),
+	// 	"iss":    os.Getenv("APP_ENV"),
+	// 	"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
+	// 	"roles":  user.Role,
+	// })
 
-	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, u.cfg.JWTConfig.RefreshSecretKey)
+	// refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, u.cfg.JWTConfig.RefreshSecretKey)
 
-	tokens := Tokens{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
+	// tokens := Tokens{
+	// 	AccessToken:  accessToken,
+	// 	RefreshToken: refreshToken,
+	// }
+	var tokens models.Tokens
+	tokens = u.auth.Authenticate(user.ID, *user.Email, user.Role)
 	response.RespondWithJson(c, http.StatusOK, tokens)
 
 }
 
-func (u *userHandler) VerifyAccessToken(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-	decodedToken := jwtHelper.VerifyToken(token, u.cfg.JWTConfig.SecretKey)
-	response.RespondWithJson(c, http.StatusOK, decodedToken)
+// func (u *userHandler) VerifyAccessToken(c *gin.Context) {
+// 	token := c.GetHeader("Authorization")
+// 	decodedToken := jwtHelper.VerifyToken(token, u.cfg.JWTConfig.SecretKey)
+// 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
-}
-func (u *userHandler) VerifyRefreshToken(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-	decodedToken := jwtHelper.VerifyToken(token, u.cfg.JWTConfig.RefreshSecretKey)
-	response.RespondWithJson(c, http.StatusOK, decodedToken)
+// }
+// func (u *userHandler) VerifyRefreshToken(c *gin.Context) {
+// 	token := c.GetHeader("Authorization")
+// 	decodedToken := jwtHelper.VerifyToken(token, u.cfg.JWTConfig.RefreshSecretKey)
+// 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
-}
+// }
+
+// func (u *userHandler) Authenticate(id uuid.UUID, email, role string) Tokens {
+
+// 	jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+// 		"userID": id,
+// 		"email":  email,
+// 		"iat":    time.Now().Unix(),
+// 		"iss":    os.Getenv("APP_ENV"),
+// 		"exp":    time.Now().Add(15 * time.Minute).Unix(),
+// 		// "exp":   time.Now().Add(30 * time.Second).Unix(),
+// 		"roles": role,
+// 	})
+
+// 	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, u.cfg.JWTConfig.SecretKey)
+
+// 	jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+// 		"userID": id,
+// 		"email":  email,
+// 		"iat":    time.Now().Unix(),
+// 		"iss":    os.Getenv("APP_ENV"),
+// 		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
+// 		"roles":  role,
+// 	})
+
+// 	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, u.cfg.JWTConfig.RefreshSecretKey)
+
+// 	tokens := Tokens{
+// 		AccessToken:  accessToken,
+// 		RefreshToken: refreshToken,
+// 	}
+
+// 	return tokens
+// }

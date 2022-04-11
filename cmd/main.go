@@ -14,6 +14,7 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/user"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/auth"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/database"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/logging"
@@ -96,9 +97,12 @@ func main() {
 
 	// auth.NewAuthHandler(authRouter, cfg)
 
+	auth := auth.NewAuthenticator(cfg)
+	fmt.Printf("auth: %s", cfg.JWTConfig.SecretKey)
+
 	userRepo := user.NewUserRepository(db)
 	userRepo.Migration()
-	user.NewUserHandler(baseRooter, userRepo) // TODO base routter değiştiilebilir
+	user.NewUserHandler(baseRooter, userRepo, auth) // TODO base routter değiştiilebilir
 
 	cartRepo := cart.NewCartRepository(db)
 	cartRepo.Migration()
