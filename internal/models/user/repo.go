@@ -44,6 +44,7 @@ func (ur *UserRepository) GetUser(email, password string) (*models.User, error) 
 		return nil, err
 	}
 
+	// TODO bu işlemi başk bir yerde yapabilir miyiz?
 	err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 	if err != nil {
 		zap.Reflect("password", *user.Password)

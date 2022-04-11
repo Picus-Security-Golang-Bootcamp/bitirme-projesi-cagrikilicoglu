@@ -21,18 +21,14 @@ schemes:
 paths:
   /products:
     get:
+      tags:
+        - "Product"
       summary: "Get all the products in the store"
-      description: ""
+      description: "Returns all the products in the store"
       operationId: "getProducts"
       produces:
         - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Products in the store"
-          required: true
-          schema:
-            $ref: "#/definitions/Product"
+      parameters: []
       responses:
         "200":
           description: "successful operation"
@@ -40,13 +36,187 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Product"
-        "405":
-          description: "Invalid input"
+  /products/sku/{sku}:
+    get:
+      tags:
+        - "Product"
+      summary: "Get a product with the given SKU input in the store"
+      description: ""
+      operationId: "getProductWithSKU"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to return"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid sku supplied"
+        "404":
+          description: "Product not found"
+    delete:
+      tags:
+        - "Product"
+      summary: "Delete a product with the given SKU input in the store"
+      description: ""
+      operationId: "deleteProductWithSKU"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to delete"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid sku supplied"
+        "404":
+          description: "Product not found"
+    put:
+      tags:
+        - "Product"
+      summary: "Update a product with the given SKU input in the store"
+      description: ""
+      operationId: "updateProductWithSKU"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to update"
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          description: "Product object that needs to be updated to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid sku supplied"
+        "404":
+          description: "Product not found"
+  /products/id/{id}:
+    get:
+      tags:
+        - "Product"
+      summary: "Get a product with the given ID input in the store"
+      description: ""
+      operationId: "getProductWithID"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "ID of the product to return"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid id supplied"
+        "404":
+          description: "Product not found"
+    delete:
+      tags:
+        - "Product"
+      summary: "Delete a product with the given ID input in the store"
+      description: ""
+      operationId: "deleteProductWithID"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "ID of the product to delete"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid id supplied"
+        "404":
+          description: "Product not found"
+    put:
+      tags:
+        - "Product"
+      summary: "Update a product with the given ID input in the store"
+      description: ""
+      operationId: "updateProductWithID"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "ID of the product to update"
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          description: "Product object that needs to be updated to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid id supplied"
+        "404":
+          description: "Product not found"
+  /product/search:
+    get:
+      tags:
+        - "Product"
+      summary: "Get products with a given name in the store"
+      description: "Returns all the products matching the given name in the store"
+      operationId: "getProductsByName"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "name"
+          in: "query"
+          description: "Name that need to be considered for filter"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product"
+        "400":
+          description: "Invalid name"
   /products/create:
     post:
       tags:
         - "product"
-      summary: "Add a new procut to the store"
+      summary: "Add a new product to the store"
       description: ""
       operationId: "addProduct"
       consumes:
@@ -65,6 +235,100 @@ paths:
           description: "successful create operation"
           schema:
             $ref: "#/definitions/Product"
+        "405":
+          description: "Invalid input"
+  /products/upload:
+    post:
+      tags:
+        - "product"
+      summary: "Add new products to the store from a file"
+      description: ""
+      operationId: "addProducts"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "formData"
+          name: "file"
+          description: "Product objects that needs to be added to the store"
+          required: true
+          type: file
+      responses:
+        "201":
+          description: "successful create operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Product"
+        "405":
+          description: "Invalid input"
+  /categories:
+    get:
+      tags:
+        - "Category"
+      summary: "Get all the categories in the store"
+      description: "Returns all the categories in the store"
+      operationId: "getCategories"
+      produces:
+        - "application/json"
+      parameters: []
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Category"
+  /categories/create:
+    post:
+      tags:
+        - "Category"
+      summary: "Add a new category to the store"
+      description: ""
+      operationId: "addCategory"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Category object that needs to be added to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/Category"
+      responses:
+        "201":
+          description: "successful create operation"
+          schema:
+            $ref: "#/definitions/Category"
+        "405":
+          description: "Invalid input"
+  /categories/upload:
+    post:
+      tags:
+        - "category"
+      summary: "Add new categories to the store from a file"
+      description: ""
+      operationId: "addCategories"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "formData"
+          name: "file"
+          description: "Category objects that needs to be added from a file to the store"
+          required: true
+          type: file
+      responses:
+        "201":
+          description: "successful create operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Category"
         "405":
           description: "Invalid input"
   /signup:
@@ -138,15 +402,11 @@ definitions:
   Product:
     type: "object"
     required:
-      - "id"
       - "name"
       - "price"
       - "stock"
       - "categoryName"
     properties:
-      id:
-        type: "integer"
-        format: "uint32"
       name:
         type: "string"
       price:
@@ -170,6 +430,15 @@ definitions:
         type: "integer"
         format: "uint32"
       status:
+        type: "string"
+  Category:
+    type: "object"
+    required:
+      - "name"
+    properties:
+      name:
+        type: "string"
+      description:
         type: "string"
   User:
     type: "object"
