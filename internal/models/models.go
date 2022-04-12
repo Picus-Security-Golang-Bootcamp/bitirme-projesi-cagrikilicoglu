@@ -61,12 +61,12 @@ type Order struct {
 
 type Item struct {
 	*gorm.Model
-	ProductID  string  `json:"product"`
-	Product    Product `json:"prodcut"`
-	Quantity   uint    `json:"quantity"`
-	TotalPrice float32 `json:"totalPrice"`
-	CartID     string  `json:"cart"`
-	OrderID    string  `json:"orderID, omitempty"`
+	ProductID  uuid.UUID `json:"productId"`
+	Product    Product   `json:"product"`
+	Quantity   uint      `json:"quantity"`
+	TotalPrice float32   `json:"totalPrice"`
+	CartID     uuid.UUID `json:"cartId"`
+	OrderID    string    `json:"orderID,omitempty"`
 }
 
 type Price struct {

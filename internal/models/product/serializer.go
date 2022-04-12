@@ -5,7 +5,7 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 )
 
-func productToResponse(p *models.Product) *api.Product {
+func ProductToResponse(p *models.Product) *api.Product {
 
 	stockNum := uint32(p.Stock.Number)
 	// idNum := uint32(p.ID)
@@ -26,7 +26,7 @@ func productToResponse(p *models.Product) *api.Product {
 func productsToResponse(ps *[]models.Product) []*api.Product {
 	products := make([]*api.Product, 0)
 	for _, p := range *ps {
-		products = append(products, productToResponse(&p))
+		products = append(products, ProductToResponse(&p))
 	}
 	return products
 }

@@ -22,6 +22,8 @@ func AdminAuthMiddleware(secretKey string) gin.HandlerFunc {
 				// 	}
 				// }
 				if string(decodedClaims.Roles) == "admin" {
+					userID := decodedClaims.UserId
+					c.Set("userID", userID)
 					c.Next()
 					c.Abort()
 					return
@@ -53,6 +55,8 @@ func UserAuthMiddleware(secretKey string) gin.HandlerFunc {
 				// }
 				zap.L().Debug("userAuthMid", zap.Reflect("decodedclaims", decodedClaims.Roles))
 				if string(decodedClaims.Roles) == "user" || string(decodedClaims.Roles) == "admin" {
+					userID := decodedClaims.UserId
+					c.Set("userID", userID)
 					c.Next()
 					c.Abort()
 					return

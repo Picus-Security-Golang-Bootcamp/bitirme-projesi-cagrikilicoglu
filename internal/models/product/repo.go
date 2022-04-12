@@ -80,13 +80,13 @@ func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 	return product, nil
 }
 
-func (pr *ProductRepository) getBySKU(sku string) (*models.Product, error) {
-	zap.L().Debug("product.repo.getBySKU", zap.Reflect("SKU", sku))
+func (pr *ProductRepository) GetBySKU(sku string) (*models.Product, error) {
+	zap.L().Debug("product.repo.GetBySKU", zap.Reflect("SKU", sku))
 
 	var product *models.Product
 	result := pr.db.Where(&models.Product{Stock: models.Stock{SKU: sku}}).Find(&product)
 	if result.Error != nil {
-		zap.L().Error("product.repo.getBySKU failed to get products", zap.Error(result.Error))
+		zap.L().Error("product.repo.GetBySKU failed to get products", zap.Error(result.Error))
 		return nil, result.Error
 	}
 	return product, nil
@@ -118,7 +118,7 @@ func (pr *ProductRepository) update(p *models.Product) (*models.Product, error) 
 func (pr *ProductRepository) delete(sku string) error {
 	zap.L().Debug("product.repo.delete", zap.Reflect("sku", sku))
 
-	product, err := pr.getBySKU(sku)
+	product, err := pr.GetBySKU(sku)
 	if err != nil {
 		return err
 	}

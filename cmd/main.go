@@ -12,6 +12,7 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/category"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/item"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/user"
@@ -116,9 +117,14 @@ func main() {
 
 	cartRepo := cart.NewCartRepository(db)
 	cartRepo.Migration()
-
+	// cart.NewCartHandler(baseRooter, cartRepo, cfg)
 	// SampleQueries(*productRepo)
 
+	itemRepo := item.NewItemRepository(db)
+	itemRepo.Migration()
+	itemService := item.NewItemService(itemRepo, *productRepo)
+
+	cart.NewCartHandler(baseRooter, cartRepo, itemService, cfg)
 	// TODO aşağıdaki fonksiyonu kontrol et
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {

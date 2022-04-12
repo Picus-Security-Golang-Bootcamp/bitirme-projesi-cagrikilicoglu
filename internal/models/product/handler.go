@@ -27,7 +27,7 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository, cfg *config.
 	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
 	r.POST("/upload", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.createFromFile)
 	r.GET("/id/:id", h.getByID)
-	r.GET("/sku/:sku", h.getBySKU)
+	r.GET("/sku/:sku", h.GetBySKU)
 	r.GET("", h.getByName)
 }
 
@@ -64,7 +64,7 @@ func (p *productHandler) create(c *gin.Context) {
 		response.RespondWithError(c, err)
 	}
 
-	response.RespondWithJson(c, http.StatusCreated, productToResponse(product))
+	response.RespondWithJson(c, http.StatusCreated, ProductToResponse(product))
 	// c.JSON(http.StatusOK, productsToResponse(products))
 }
 
@@ -77,7 +77,7 @@ func (p *productHandler) getByID(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	response.RespondWithJson(c, http.StatusOK, productToResponse(product))
+	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
 func (p *productHandler) createFromFile(c *gin.Context) {
@@ -121,15 +121,15 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 }
 
 //---------------BURADA KALDIN--------
-func (p *productHandler) getBySKU(c *gin.Context) {
+func (p *productHandler) GetBySKU(c *gin.Context) {
 	sku := c.Param("sku")
 
-	product, err := p.repo.getBySKU(sku)
+	product, err := p.repo.GetBySKU(sku)
 	if err != nil {
 		response.RespondWithError(c, err)
 		return
 	}
-	response.RespondWithJson(c, http.StatusOK, productToResponse(product))
+	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
 func (p *productHandler) getByName(c *gin.Context) {

@@ -22,10 +22,31 @@ func (cr *CartRepository) Create(u *models.User) (*models.Cart, error) {
 
 	var c *models.Cart
 	// c.User = u
-	zap.L().Debug("User.repo.create", zap.Reflect("Cart", c))
+	zap.L().Debug("Cart.repo.create", zap.Reflect("Cart", c))
 	if err := cr.db.Create(c).Error; err != nil {
-		zap.L().Error("User.repo.Create failed to create User", zap.Error(err))
+		zap.L().Error("Cart.repo.Create failed to create Cart", zap.Error(err))
 		return nil, err
 	}
 	return c, nil
+}
+
+func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
+	var c *models.Cart
+	zap.L().Debug("Cart.repo.getByUserID", zap.Reflect("id", id))
+	if err := cr.db.Preload("Items").Where("user_id = ?", id).First(&c).Error; err != nil {
+		zap.L().Error("Cart.repo.Create failed to get Cart", zap.Error(err))
+		return nil, err
+	}
+	return c, nil
+
+}
+func (cr *CartRepository) AddItem(c *models.Cart) (*models.Cart, error) {
+	zap.L().Debug("product.cart.AddItem", zap.Reflect("cart", c))
+
+	if result := cr.db.Preload("Items").Save(&c); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return c, nil
+
 }

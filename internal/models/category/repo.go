@@ -71,6 +71,7 @@ func (cr *CategoryRepository) getAll(pageIndex, pageSize int) (*[]models.Categor
 	return categories, count, nil
 }
 
+// TODO preload çalışmıyor
 func (cr *CategoryRepository) getByNameWithProducts(name string) (*models.Category, error) {
 	zap.L().Debug("category.repo.getByName", zap.Reflect("name", name))
 
