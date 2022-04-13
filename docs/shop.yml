@@ -525,6 +525,7 @@ definitions:
       - "items"
       - "totalPrice"
       - "status"
+      - "date"
     properties:
       id:
         type: "string"
@@ -537,3 +538,6 @@ definitions:
         format: "float"
       status:
         type: "string"
+      date:
+        type: "string"
+        format: "date"

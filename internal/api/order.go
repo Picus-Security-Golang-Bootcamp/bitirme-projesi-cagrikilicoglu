@@ -20,6 +20,11 @@ import (
 // swagger:model Order
 type Order struct {
 
+	// date
+	// Required: true
+	// Format: date
+	Date *strfmt.Date `json:"date"`
+
 	// id
 	// Required: true
 	ID *string `json:"id"`
@@ -41,6 +46,10 @@ type Order struct {
 func (m *Order) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDate(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
@@ -60,6 +69,19 @@ func (m *Order) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Order) validateDate(formats strfmt.Registry) error {
+
+	if err := validate.Required("date", "body", m.Date); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("date", "body", "date", m.Date.String(), formats); err != nil {
+		return err
+	}
+
 	return nil
 }
 

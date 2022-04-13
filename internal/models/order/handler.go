@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
@@ -12,7 +13,11 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
+
+// TODO aşağıdakini başka bir yere taşıyabilir miyiz? config gibi
+var maxAllowedCancelDay = 14
 
 type orderHandler struct {
 	orderRepo   *OrderRepository
@@ -25,10 +30,66 @@ func NewOrderHandler(r *gin.RouterGroup, orderRepo *OrderRepository, cartRepo *c
 		cartRepo:    cartRepo,
 		itemService: is}
 
-	// r.GET("/order", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.getCart)
 	r.POST("/order", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.placeOrder)
-	// r.DELETE("/cart/delete/sku/:sku", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.DeleteItem)
-	// r.PUT("/cart/update/sku/:sku/quantity/:quantity", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.UpdateItem)
+	r.DELETE("/order/id/:id/cancel", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.cancelOrder)
+	r.GET("/order/history", middleware.UserAuthMiddleware(cfg.JWTConfig.SecretKey), h.getOrders)
+
+}
+
+func (oh *orderHandler) cancelOrder(c *gin.Context) {
+	// currentUserId, ok := c.Get("userID")
+
+	// if !ok {
+	// 	//TODO erroru farklı şekilde handle et
+	// 	response.RespondWithError(c, errors.New("User data not found"))
+	// 	return
+	// }
+	// currentUserIDParsed, err := uuid.Parse(fmt.Sprintf("%v", currentUserId))
+	// if err != nil {
+	// 	response.RespondWithError(c, err)
+	// }
+	id := c.Param("id")
+	orderIDParsed, err := uuid.Parse(fmt.Sprintf("%v", id))
+	if err != nil {
+		response.RespondWithError(c, err)
+	}
+
+	order, err := oh.orderRepo.getWithID(orderIDParsed)
+	if err != nil {
+		response.RespondWithError(c, errors.New("Order cannot be found"))
+		return
+	}
+
+	allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
+	if !time.Now().Before(allowedCancelDeadline) {
+		response.RespondWithError(c, errors.New("Order cannot be canceled after 14 days :("))
+		return
+	}
+	err = oh.orderRepo.delete(order)
+
+	if err != nil {
+		response.RespondWithError(c, err)
+	}
+	response.RespondWithJson(c, http.StatusOK, fmt.Sprintf("Order successfully canceled from the cart"))
+
+	// response.RespondWithJson()
+
+}
+
+func (oh *orderHandler) getOrders(c *gin.Context) {
+
+	currentUserId, ok := c.Get("userID")
+	if !ok {
+		//TODO erroru farklı şekilde handle et
+		response.RespondWithError(c, errors.New("User data not found"))
+		return
+	}
+	currentUserIDParsed, err := uuid.Parse(fmt.Sprintf("%v", currentUserId))
+	if err != nil {
+		response.RespondWithError(c, err)
+	}
+	orders, err := oh.orderRepo.getWithUserID(currentUserIDParsed)
+	response.RespondWithJson(c, http.StatusOK, ordersToResponse(orders))
 
 }
 
@@ -47,12 +108,20 @@ func (oh *orderHandler) placeOrder(c *gin.Context) {
 	}
 	c.Set("cartID", cart.ID)
 	order := createOrderFromCart(cart)
-	orderPlaced, err := oh.orderRepo.Create(order)
+	err = oh.orderRepo.Create(order)
 	if err != nil {
 		response.RespondWithError(c, errors.New("Order cannot be placed"))
 		return
 	}
+	c.Set("orderID", order.ID)
+
+	oh.itemService.Order(c)
 	oh.itemService.ClearCart(c)
+	orderPlaced, err := oh.orderRepo.getWithID(order.ID)
+	if err != nil {
+		response.RespondWithError(c, errors.New("Order cannot be placed"))
+		return
+	}
 	response.RespondWithJson(c, http.StatusCreated, orderToResponse(orderPlaced))
 
 }
@@ -60,8 +129,8 @@ func (oh *orderHandler) placeOrder(c *gin.Context) {
 // TODO aşağıdaki fonksiyon servise taşıanilbir
 func createOrderFromCart(c *models.Cart) *models.Order {
 	return &models.Order{
-		UserID:     c.UserID,
-		Items:      c.Items,
+		UserID: c.UserID,
+		// Items:      c.Items,
 		TotalPrice: c.TotalPrice,
 	}
 }

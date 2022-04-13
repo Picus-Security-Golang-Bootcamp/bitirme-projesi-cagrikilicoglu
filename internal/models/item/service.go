@@ -26,6 +26,7 @@ type Service interface {
 	Update(c *gin.Context) error
 	CalculatePrice(c *gin.Context) (float32, error)
 	ClearCart(c *gin.Context) error
+	Order(c *gin.Context) error
 	// Delete(ctx context.Context, id string) (*Basket, error)
 
 	// UpdateItem(ctx context.Context, basketId, itemId string, quantity int) error
@@ -229,9 +230,53 @@ func (is *ItemService) ClearCart(c *gin.Context) error {
 		return err
 	}
 	items, err := is.itemRepo.getItemsInCart(parsedCartId)
+	if err != nil {
+		return err
+	}
 	for i := range *items {
 		itemsDeref := *items
 		err := is.itemRepo.removeFromCart(&itemsDeref[i])
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (is *ItemService) Order(c *gin.Context) error {
+
+	// zap.L().Debug("item.order", zap.Reflect("item", orderID))
+	orderID, ok := c.Get("orderID")
+
+	zap.L().Debug("item.order.head", zap.Reflect("item", orderID))
+	if !ok {
+		// response.RespondWithError(c, errors.New("Cart data not found"))
+		return errors.New("Order data not found")
+	}
+	parsedOrderId, err := uuid.Parse(fmt.Sprintf("%v", orderID))
+	if err != nil {
+		return err
+	}
+	cartID, ok := c.Get("cartID")
+	if !ok {
+		// response.RespondWithError(c, errors.New("Cart data not found"))
+		return errors.New("Cart data not found")
+	}
+	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
+	if err != nil {
+		return err
+	}
+	items, err := is.itemRepo.getItemsInCart(parsedCartId)
+	if err != nil {
+		return err
+	}
+
+	for i := range *items {
+		itemsDeref := *items
+
+		zap.L().Debug("item.order", zap.Reflect("item", itemsDeref))
+		err := is.itemRepo.order(&itemsDeref[i], parsedOrderId)
 		if err != nil {
 			return err
 		}

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -153,7 +154,10 @@ func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-var statusPlaced = "placed"
+var (
+	statusPlaced   = "placed"
+	statusCanceled = "canceled"
+)
 
 func (o *Order) BeforeCreate(tx *gorm.DB) (err error) {
 	o.ID = uuid.New()
@@ -162,6 +166,17 @@ func (o *Order) BeforeCreate(tx *gorm.DB) (err error) {
 	// if !u.IsValid() {
 	// 	err = errors.New("can't save invalid data")
 	// }
+	return
+}
+
+func (o *Order) AfterDelete(tx *gorm.DB) (err error) {
+
+	zap.L().Debug("order.afterdelete", zap.Reflect("id", o.ID))
+
+	// TODO erroru handle et
+	tx.Model(&o).Unscoped().Where("id = ?", o.ID).Update("status", statusCanceled)
+	// order := tx.Model(&o).First(&o)
+	// zap.L().Debug("order.afterdeletew", zap.Reflect("order", order))
 	return
 }
 

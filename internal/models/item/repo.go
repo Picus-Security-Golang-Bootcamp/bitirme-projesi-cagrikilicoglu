@@ -22,6 +22,7 @@ type Repository interface {
 	getItemWithProductID(id, cartID uuid.UUID) (*models.Item, error)
 	update(i *models.Item) error
 	removeFromCart(i *models.Item) error
+	order(i *models.Item, orderID uuid.UUID) error
 	// // Update updates the basket with given Is in the storage.
 	// Update(ctx context.Context, basket Basket) error
 	// // Delete removes the basket with given Is from the storage.
@@ -90,7 +91,7 @@ func (ir *ItemRepository) getItemsInCart(cartID uuid.UUID) (*[]models.Item, erro
 	zap.L().Debug("item.repo.GetItemsInCart", zap.Reflect("cartID", cartID))
 	var items *[]models.Item
 	// TODO clause associations'ı productsa çevirebilir miyiz?
-	result := ir.db.Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
+	result := ir.db.Where("is_ordered", false).Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -127,6 +128,16 @@ func (ir *ItemRepository) removeFromCart(i *models.Item) error {
 	zap.L().Debug("itemservice.repo.removefromcart", zap.Reflect("items", i))
 
 	if err := ir.db.Model(&i).Preload("Product").Select("is_ordered").Update("is_ordered", true).Error; err != nil {
+		zap.L().Error("item.repo.update failed to update item", zap.Error(err))
+		return err
+	}
+	return nil
+}
+func (ir *ItemRepository) order(i *models.Item, orderID uuid.UUID) error {
+
+	zap.L().Debug("item.repo.order", zap.Reflect("orderID", orderID))
+
+	if err := ir.db.Model(&i).Preload("Product").Select("order_id").Update("order_id", orderID).Error; err != nil {
 		zap.L().Error("item.repo.update failed to update item", zap.Error(err))
 		return err
 	}
