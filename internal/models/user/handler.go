@@ -33,6 +33,7 @@ func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authent
 
 	r.POST("/signup", h.createUser)
 	r.POST("/login", h.Login)
+	// r.POST("/refresh", middleware.RefreshMiddleware(cfg.JWTConfig.RefreshSecretKey), h.Refresh)
 
 }
 
@@ -115,6 +116,10 @@ func (u *userHandler) Login(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, tokens)
 
 }
+
+// func (u *userHandler) Refresh(c *gin.Context) {
+
+// }
 
 // func (u *userHandler) VerifyAccessToken(c *gin.Context) {
 // 	token := c.GetHeader("Authorization")

@@ -75,24 +75,28 @@ func UserAuthMiddleware(secretKey string) gin.HandlerFunc {
 	}
 }
 
+// TODO düzelt
 func RefreshMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetHeader("Authorization") != "" {
 			decodedClaims := jwtHelper.VerifyToken(c.GetHeader("Authorization"), secretKey)
 			if decodedClaims != nil {
-				for _, role := range decodedClaims.Roles {
-					if string(role) == "admin" {
-						c.Next()
-						c.Abort()
-						return
-					}
+				// for _, role := range decodedClaims.Roles {
+				if string(decodedClaims.Roles) == "user" || string(decodedClaims.Roles) == "admin" {
+					userID := decodedClaims.UserId
+					c.Set("userID", userID)
+					c.Next()
+					c.Abort()
+					return
 				}
+				// }
 			}
 			response.RespondWithError(c, errors.New("You are not allowed to use this endpoint"))
 			c.Abort()
 			return
 		} else {
 			c.Abort()
+			response.RespondWithError(c, errors.New("Missing authorization"))
 			// TODO respond with error missing authorization
 			return
 		}

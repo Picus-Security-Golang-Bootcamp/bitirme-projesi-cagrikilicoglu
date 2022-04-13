@@ -104,21 +104,22 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // TODO aşağıdaki iki fonksiyonu başka bir yere alabilir miyiz?
-func (c *Cart) AfterSave(tx *gorm.DB) (err error) {
-	c.CalculatePrice()
-	return
-}
-func (c *Cart) AfterDelete(tx *gorm.DB) (err error) {
-	c.CalculatePrice()
-	return
-}
+// func (c *Cart) AfterUpdate(tx *gorm.DB) (err error) {
+// 	zap.L().Debug("cart.afterupdate")
+// 	c.CalculatePrice()
+// 	return
+// }
+// func (c *Cart) AfterDelete(tx *gorm.DB) (err error) {
+// 	c.CalculatePrice()
+// 	return
+// }
 
-func (c *Cart) CalculatePrice() {
-	c.TotalPrice = 0
-	for i := range c.Items {
-		c.TotalPrice += c.Items[i].TotalPrice
-	}
-}
+// func (c *Cart) CalculatePrice() {
+// 	c.TotalPrice = 0
+// 	for i := range c.Items {
+// 		c.TotalPrice += c.Items[i].TotalPrice
+// 	}
+// }
 
 func (c *Category) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = uuid.New()

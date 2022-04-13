@@ -23,6 +23,8 @@ type Service interface {
 	Create(c *gin.Context) (*models.Item, error)
 	Delete(c *gin.Context) error
 	CheckProduct(c *gin.Context) (bool, error)
+	Update(c *gin.Context) error
+	CalculatePrice(c *gin.Context) (float32, error)
 	// Delete(ctx context.Context, id string) (*Basket, error)
 
 	// UpdateItem(ctx context.Context, basketId, itemId string, quantity int) error
@@ -108,6 +110,7 @@ func (is *ItemService) Delete(c *gin.Context) error {
 	return nil
 }
 
+// TODO bulursa false dönüyo ya bu mantık değiştirilebilir ya fonksiyon ismi değiştiilebilir
 func (is *ItemService) CheckProduct(c *gin.Context) (bool, error) {
 
 	sku := c.Param("sku")
@@ -134,4 +137,70 @@ func (is *ItemService) CheckProduct(c *gin.Context) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func (is *ItemService) Update(c *gin.Context) error {
+	sku := c.Param("sku")
+	quantity := c.Param("quantity")
+
+	quantityInt, err := strconv.Atoi(quantity)
+	if err != nil {
+		return errors.New("cannot parse quantity")
+	}
+	zap.L().Debug("itemservice.create.quantity parsed")
+	// TODO burada cart id'ye gerek var mı?
+	cartID, ok := c.Get("cartID")
+	if !ok {
+		// response.RespondWithError(c, errors.New("Cart data not found"))
+		return errors.New("Cart data not found")
+	}
+	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
+	if err != nil {
+		return err
+	}
+	id, err := is.productRepo.GetIDBySKU(sku)
+	if err != nil {
+		return err
+	}
+	// item, err := is.itemRepo.getItemWithProductSKU(sku, parsedCartId)
+
+	item, err := is.itemRepo.getItemWithProductID(id, parsedCartId)
+	if err != nil {
+		return err
+	}
+	item.Quantity = uint(quantityInt)
+
+	// TODO aşağısı after update'de yapılabilir.
+	totalPrice := item.Product.Price * float32(item.Quantity)
+	item.TotalPrice = totalPrice
+
+	err = is.itemRepo.update(item)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (is *ItemService) CalculatePrice(c *gin.Context) (float32, error) {
+	cartID, ok := c.Get("cartID")
+	if !ok {
+		// response.RespondWithError(c, errors.New("Cart data not found"))
+		return -1, errors.New("Cart data not found")
+	}
+	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
+	if err != nil {
+		return -1, err
+	}
+	items, err := is.itemRepo.getItemsInCart(parsedCartId)
+	zap.L().Debug("itemservice.checkProduc.getItemsInCart", zap.Reflect("items", items))
+	if err != nil {
+		return -1, err
+	}
+	var totalPrice float32
+	for _, v := range *items {
+		totalPrice += v.TotalPrice
+	}
+	return totalPrice, nil
+
 }

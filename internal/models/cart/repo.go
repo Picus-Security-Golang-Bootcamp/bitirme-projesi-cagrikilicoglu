@@ -40,26 +40,37 @@ func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 	return c, nil
 
 }
-func (cr *CartRepository) AddItem(c *models.Cart) (*models.Cart, error) {
-	zap.L().Debug("product.cart.AddItem", zap.Reflect("cart", c))
 
-	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
-		return nil, result.Error
+// func (cr *CartRepository) AddItem(c *models.Cart) (*models.Cart, error) {
+// 	zap.L().Debug("product.cart.AddItem", zap.Reflect("cart", c))
+
+// 	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
+// 		return nil, result.Error
+// 	}
+
+// 	return c, nil
+
+// }
+
+// func (cr *CartRepository) DeleteItem(c *models.Cart) (*models.Cart, error) {
+// 	zap.L().Debug("cart.delete.deleteItem", zap.Reflect("cart", c))
+
+// 	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
+// 		return nil, result.Error
+// 	}
+
+// 	return c, nil
+
+// }
+
+func (cr *CartRepository) UpdateTotalPrice(c *models.Cart, totalPrice float32) error {
+	zap.L().Debug("cart.update.updateTotalPrice", zap.Reflect("cart", c))
+	// // TODO preload'a gerek var mı?
+	// if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
+	if result := cr.db.Model(&c).Select("TotalPrice").Update("total_price", totalPrice); result.Error != nil {
+		return result.Error
 	}
-
-	return c, nil
-
-}
-
-func (cr *CartRepository) DeleteItem(c *models.Cart) (*models.Cart, error) {
-	zap.L().Debug("cart.delete.deleteItem", zap.Reflect("cart", c))
-
-	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
-		return nil, result.Error
-	}
-
-	return c, nil
-
+	return nil
 }
 
 // func(cr *CartRepository) CheckProduct(c *models.Cart,sku string) (bool){
