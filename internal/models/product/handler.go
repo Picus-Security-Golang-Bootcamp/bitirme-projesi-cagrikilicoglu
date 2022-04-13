@@ -120,6 +120,7 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 
 }
 
+// TODO delete fonksiyonu yaz
 //---------------BURADA KALDIN--------
 func (p *productHandler) GetBySKU(c *gin.Context) {
 	sku := c.Param("sku")

@@ -33,7 +33,7 @@ func (cr *CartRepository) Create(u *models.User) (*models.Cart, error) {
 func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 	var c *models.Cart
 	zap.L().Debug("Cart.repo.getByUserID", zap.Reflect("id", id))
-	if err := cr.db.Preload("Items").Where("user_id = ?", id).First(&c).Error; err != nil {
+	if err := cr.db.Preload("Items.Product").Preload("Items").Where("user_id = ?", id).First(&c).Error; err != nil {
 		zap.L().Error("Cart.repo.Create failed to get Cart", zap.Error(err))
 		return nil, err
 	}
@@ -43,10 +43,25 @@ func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 func (cr *CartRepository) AddItem(c *models.Cart) (*models.Cart, error) {
 	zap.L().Debug("product.cart.AddItem", zap.Reflect("cart", c))
 
-	if result := cr.db.Preload("Items").Save(&c); result.Error != nil {
+	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
 		return nil, result.Error
 	}
 
 	return c, nil
 
 }
+
+func (cr *CartRepository) DeleteItem(c *models.Cart) (*models.Cart, error) {
+	zap.L().Debug("cart.delete.deleteItem", zap.Reflect("cart", c))
+
+	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
+		return nil, result.Error
+	}
+
+	return c, nil
+
+}
+
+// func(cr *CartRepository) CheckProduct(c *models.Cart,sku string) (bool){
+// 	if result :=  cr.db.Preload("Items.Product").Preload("Items").Where(c.Items.Product)
+// }

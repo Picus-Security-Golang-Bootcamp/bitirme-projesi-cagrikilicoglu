@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -132,4 +133,17 @@ func (pr *ProductRepository) delete(sku string) error {
 
 func (pr *ProductRepository) Migration() {
 	pr.db.AutoMigrate(&models.Product{})
+}
+
+// TODO içine getbysku fonksiyonu alabilir
+func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
+	zap.L().Debug("product.repo.GetIDBySKU", zap.Reflect("SKU", sku))
+
+	product, err := pr.GetBySKU(sku)
+	// var product *models.Product
+	if err != nil {
+		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
+		return uuid.Nil, err
+	}
+	return product.ID, nil
 }
