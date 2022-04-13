@@ -47,7 +47,8 @@ type User struct {
 	ZipCode   string         `json:"zipCode"`
 	Role      string         `json:"role"`
 	// CartID    uint      `json:"cartId"`
-	Cart Cart `json:"cart"`
+	Cart   Cart    `json:"cart"`
+	Orders []Order `json:"orders"`
 }
 
 type Cart struct {
@@ -61,14 +62,15 @@ type Cart struct {
 }
 
 type Order struct {
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	DeletedAt      gorm.DeletedAt `gorm:"index"`
-	User           *User          `json:"user" gorm:"unique"`
-	Items          []Item         `json:"items"`
-	TotalPrice     float32        `json:"totalPrice"`
-	OrderStatus    string         `json:"orderStatus"`
-	TrackingNumber string         `json:"trackingNumber"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  gorm.DeletedAt `gorm:"index"`
+	ID         uuid.UUID      `json:"id"`
+	UserID     uuid.UUID      `json:"userId"`
+	Items      []Item         `json:"items"`
+	TotalPrice float32        `json:"totalPrice"`
+	Status     string         `json:"status"`
+	// TrackingNumber string         `json:"trackingNumber"`
 }
 
 type Item struct {
@@ -81,7 +83,9 @@ type Item struct {
 	Quantity   uint           `json:"quantity"`
 	TotalPrice float32        `json:"totalPrice"`
 	CartID     uuid.UUID      `json:"cartId"`
-	OrderID    string         `json:"orderID,omitempty"`
+	OrderID    uuid.UUID      `json:"orderId,omitempty" gorm:"default:null"`
+	// OrderedAt  time.Time      `json:"orderedAt" gorm:"default:null"`
+	IsOrdered bool `json:"isOrdered" gorm:"default:false"`
 }
 
 type Price struct {
@@ -142,6 +146,18 @@ func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
 }
 func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {
 	i.ID = uuid.New()
+	// TODO erroru handle et
+	// if !u.IsValid() {
+	// 	err = errors.New("can't save invalid data")
+	// }
+	return
+}
+
+var statusPlaced = "placed"
+
+func (o *Order) BeforeCreate(tx *gorm.DB) (err error) {
+	o.ID = uuid.New()
+	o.Status = statusPlaced
 	// TODO erroru handle et
 	// if !u.IsValid() {
 	// 	err = errors.New("can't save invalid data")

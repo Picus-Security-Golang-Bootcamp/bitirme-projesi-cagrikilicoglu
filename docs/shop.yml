@@ -518,3 +518,22 @@ definitions:
       totalPrice:
         type: "number"
         format: "float"
+  Order:
+    type: "object"
+    required:
+      - "id"
+      - "items"
+      - "totalPrice"
+      - "status"
+    properties:
+      id:
+        type: "string"
+      items:
+        type: "array"
+        items:
+          $ref: "#/definitions/Item"
+      totalPrice:
+        type: "number"
+        format: "float"
+      status:
+        type: "string"

@@ -21,6 +21,7 @@ type Repository interface {
 	getItemsInCart(cartID uuid.UUID) (*[]models.Item, error)
 	getItemWithProductID(id, cartID uuid.UUID) (*models.Item, error)
 	update(i *models.Item) error
+	removeFromCart(i *models.Item) error
 	// // Update updates the basket with given Is in the storage.
 	// Update(ctx context.Context, basket Basket) error
 	// // Delete removes the basket with given Is from the storage.
@@ -114,7 +115,18 @@ func (ir *ItemRepository) getItemWithProductID(id, cartID uuid.UUID) (*models.It
 }
 
 func (ir *ItemRepository) update(i *models.Item) error {
-	if err := ir.db.Preload("Product").Save(i).Error; err != nil {
+	if err := ir.db.Preload("Product").Omit("OrderID").Save(i).Error; err != nil {
+		zap.L().Error("item.repo.update failed to update item", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (ir *ItemRepository) removeFromCart(i *models.Item) error {
+
+	zap.L().Debug("itemservice.repo.removefromcart", zap.Reflect("items", i))
+
+	if err := ir.db.Model(&i).Preload("Product").Select("is_ordered").Update("is_ordered", true).Error; err != nil {
 		zap.L().Error("item.repo.update failed to update item", zap.Error(err))
 		return err
 	}

@@ -25,6 +25,7 @@ type Service interface {
 	CheckProduct(c *gin.Context) (bool, error)
 	Update(c *gin.Context) error
 	CalculatePrice(c *gin.Context) (float32, error)
+	ClearCart(c *gin.Context) error
 	// Delete(ctx context.Context, id string) (*Basket, error)
 
 	// UpdateItem(ctx context.Context, basketId, itemId string, quantity int) error
@@ -63,6 +64,11 @@ func (is *ItemService) Create(c *gin.Context) (*models.Item, error) {
 		return nil, errors.New("Cart data not found")
 	}
 
+	// TODO yukarıda getbysku ile çağırma olayını aşağıdaki fonksiyon içinde de yapabilirsin
+	_, err = is.productRepo.CheckStock(sku, uint(quantityInt))
+	if err != nil {
+		return nil, err
+	}
 	// createdItem:=
 	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
 	item := models.Item{
@@ -164,6 +170,12 @@ func (is *ItemService) Update(c *gin.Context) error {
 	}
 	// item, err := is.itemRepo.getItemWithProductSKU(sku, parsedCartId)
 
+	// TODO yukarıda getbysku ile çağırma olayını aşağıdaki fonksiyon içinde de yapabilirsin
+	_, err = is.productRepo.CheckStock(sku, uint(quantityInt))
+	if err != nil {
+		return err
+	}
+	// createdItem:=
 	item, err := is.itemRepo.getItemWithProductID(id, parsedCartId)
 	if err != nil {
 		return err
@@ -203,4 +215,27 @@ func (is *ItemService) CalculatePrice(c *gin.Context) (float32, error) {
 	}
 	return totalPrice, nil
 
+}
+
+func (is *ItemService) ClearCart(c *gin.Context) error {
+
+	cartID, ok := c.Get("cartID")
+	if !ok {
+		// response.RespondWithError(c, errors.New("Cart data not found"))
+		return errors.New("Cart data not found")
+	}
+	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
+	if err != nil {
+		return err
+	}
+	items, err := is.itemRepo.getItemsInCart(parsedCartId)
+	for i := range *items {
+		itemsDeref := *items
+		err := is.itemRepo.removeFromCart(&itemsDeref[i])
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }

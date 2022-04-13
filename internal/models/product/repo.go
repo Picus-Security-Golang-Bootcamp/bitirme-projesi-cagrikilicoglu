@@ -148,7 +148,7 @@ func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
 	return product.ID, nil
 }
 
-func (pr *ProductRepository) CheckStock(sku string, quantity int) (*models.Product, error) {
+func (pr *ProductRepository) CheckStock(sku string, quantity uint) (*models.Product, error) {
 
 	zap.L().Debug("product.repo.CheckStock", zap.Reflect("SKU", sku))
 	product, err := pr.GetBySKU(sku)
@@ -156,21 +156,22 @@ func (pr *ProductRepository) CheckStock(sku string, quantity int) (*models.Produ
 		zap.L().Error("product.repo.CheckStock failed to get product", zap.Error(err))
 		return nil, err
 	}
-	if product.Stock.Number < uint(quantity) {
-		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", product.Name, (product.Stock.Number + 1))
+	if product.Stock.Number < quantity {
+		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", *product.Name, (product.Stock.Number + 1))
 	}
 
 	return product, nil
 }
 
-func (pr *ProductRepository) UpdateStock(sku string, quantity int) error {
-	ok, err, pro := pr.CheckStock(sku, quantity)
-
-	product, err := pr.GetBySKU(sku)
-	// var product *models.Product
+func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
+	product, err := pr.CheckStock(sku, quantity)
 	if err != nil {
-		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
-		return uuid.Nil, err
+		return err
 	}
-	return product.ID, nil
+	//TODO aşağıdaki çalışmıyor olabilir
+	if result := pr.db.Model(&product).Select("Stock.Number").Update("number", (product.Stock.Number - quantity)); result.Error != nil {
+		return result.Error
+	}
+	return nil
+
 }
