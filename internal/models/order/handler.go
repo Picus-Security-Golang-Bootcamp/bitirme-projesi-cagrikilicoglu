@@ -61,8 +61,8 @@ func (oh *orderHandler) cancelOrder(c *gin.Context) {
 		return
 	}
 
-	// allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
-	allowedCancelDeadline := order.CreatedAt.Add(time.Minute * 1)
+	allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
+	// allowedCancelDeadline := order.CreatedAt.Add(time.Minute * 1)
 	if !time.Now().Before(allowedCancelDeadline) {
 		response.RespondWithError(c, errors.New("Order cannot be canceled after 14 days :("))
 		return

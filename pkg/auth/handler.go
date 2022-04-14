@@ -16,11 +16,11 @@ import (
 )
 
 type Authenticator struct {
-	cfg *config.Config
+	Cfg *config.Config
 }
 
 func NewAuthenticator(cfg *config.Config) *Authenticator {
-	return &Authenticator{cfg: cfg}
+	return &Authenticator{Cfg: cfg}
 }
 
 func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.Tokens {
@@ -37,16 +37,16 @@ func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.To
 		"email":  email,
 		"iat":    time.Now().Unix(),
 		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(15 * time.Minute).Unix(),
+		"exp":    time.Now().Add(1 * time.Minute).Unix(),
 		// "exp":   time.Now().Add(30 * time.Second).Unix(),
 		"roles": role,
 	})
 	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
 		zap.Reflect("jwtAccesClaims", jwtAccessClaims))
 	zap.L().Debug("authenticator.authenticate.secret",
-		zap.Reflect("secretKey", a.cfg.JWTConfig.SecretKey))
+		zap.Reflect("secretKey", a.Cfg.JWTConfig.SecretKey))
 
-	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.cfg.JWTConfig.SecretKey)
+	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
 	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
 		zap.Reflect("accesstoken", accessToken))
 
@@ -59,7 +59,7 @@ func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.To
 		"roles":  role,
 	})
 
-	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.cfg.JWTConfig.RefreshSecretKey)
+	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
 
 	tokens := models.Tokens{
 		AccessToken:  accessToken,
@@ -70,13 +70,13 @@ func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.To
 }
 func (a *Authenticator) VerifyAccessToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
-	decodedToken := jwtHelper.VerifyToken(token, a.cfg.JWTConfig.SecretKey)
+	decodedToken := jwtHelper.VerifyToken(token, a.Cfg.JWTConfig.SecretKey)
 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
 }
 func (a *Authenticator) VerifyRefreshToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
-	decodedToken := jwtHelper.VerifyToken(token, a.cfg.JWTConfig.RefreshSecretKey)
+	decodedToken := jwtHelper.VerifyToken(token, a.Cfg.JWTConfig.RefreshSecretKey)
 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
 }
@@ -95,16 +95,16 @@ func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens 
 		"email":  email,
 		"iat":    time.Now().Unix(),
 		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(15 * time.Minute).Unix(),
+		"exp":    time.Now().Add(1 * time.Minute).Unix(),
 		// "exp":   time.Now().Add(30 * time.Second).Unix(),
 		"roles": role,
 	})
 	zap.L().Debug("authenticator.refresh.jwtaccessclaims",
 		zap.Reflect("jwtAccesClaims", jwtAccessClaims))
 	zap.L().Debug("authenticator.refresh.secret",
-		zap.Reflect("secretKey", a.cfg.JWTConfig.SecretKey))
+		zap.Reflect("secretKey", a.Cfg.JWTConfig.SecretKey))
 
-	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.cfg.JWTConfig.SecretKey)
+	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
 	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
 		zap.Reflect("accesstoken", accessToken))
 
@@ -117,7 +117,7 @@ func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens 
 		"roles":  role,
 	})
 
-	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.cfg.JWTConfig.RefreshSecretKey)
+	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
 
 	tokens := models.Tokens{
 		AccessToken:  accessToken,

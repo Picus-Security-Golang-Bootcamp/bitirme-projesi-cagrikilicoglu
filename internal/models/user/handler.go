@@ -2,14 +2,17 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/auth"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +36,7 @@ func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authent
 
 	r.POST("/signup", h.createUser)
 	r.POST("/login", h.Login)
-	// r.POST("/refresh", middleware.RefreshMiddleware(cfg.JWTConfig.RefreshSecretKey), h.Refresh)
+	r.POST("/refresh", middleware.RefreshMiddleware(h.auth.Cfg.JWTConfig.RefreshSecretKey), h.Refresh)
 
 }
 
@@ -117,9 +120,21 @@ func (u *userHandler) Login(c *gin.Context) {
 
 }
 
-// func (u *userHandler) Refresh(c *gin.Context) {
+func (u *userHandler) Refresh(c *gin.Context) {
+	//TODO error handling yaz
+	userID, _ := c.Get("userID")
+	email, _ := c.Get("email")
+	role, _ := c.Get("role")
 
-// }
+	userIDParsed, err := uuid.Parse(fmt.Sprintf("%v", userID))
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	var tokens models.Tokens
+	tokens = u.auth.Authenticate(userIDParsed, email.(string), role.(string))
+	response.RespondWithJson(c, http.StatusOK, tokens)
+}
 
 // func (u *userHandler) VerifyAccessToken(c *gin.Context) {
 // 	token := c.GetHeader("Authorization")

@@ -83,8 +83,10 @@ func RefreshMiddleware(secretKey string) gin.HandlerFunc {
 			if decodedClaims != nil {
 				// for _, role := range decodedClaims.Roles {
 				if string(decodedClaims.Roles) == "user" || string(decodedClaims.Roles) == "admin" {
-					userID := decodedClaims.UserId
-					c.Set("userID", userID)
+					// userID := decodedClaims.UserId
+					c.Set("userID", decodedClaims.UserId)
+					c.Set("email", decodedClaims.Email)
+					c.Set("role", decodedClaims.Roles)
 					c.Next()
 					c.Abort()
 					return
