@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 var (
 	// DefaultPageSize specifies the default page size
-	DefaultPageSize = 100
+	DefaultPageSize = 10
 	// MaxPageSize specifies the maximum page size
-	MaxPageSize = 10000
+	MaxPageSize = 100
 	// PageVar specifies the query parameter name for page number
 	PageVar = "page"
 	// PageSizeVar specifies the query parameter name for page size
@@ -33,7 +34,33 @@ type Pages struct {
 // The pageSize parameter refers to the number of items on each page.
 // And the total parameter specifies the total number of data items.
 // If total is less than 0, it means total is unknown.
-func New(page, pageSize, total int) *Pages {
+// func New(page, pageSize, total int) *Pages {
+// 	if pageSize <= 0 {
+// 		pageSize = DefaultPageSize
+// 	}
+// 	if pageSize > MaxPageSize {
+// 		pageSize = MaxPageSize
+// 	}
+// 	pageCount := -1
+// 	if total >= 0 {
+// 		pageCount = (total + pageSize - 1) / pageSize
+// 	}
+// 	return &Pages{
+// 		Page:       page,
+// 		PageSize:   pageSize,
+// 		TotalCount: total,
+// 		PageCount:  pageCount,
+// 	}
+// }
+
+// New creates a new Pages instance.
+// The page parameter is 1-based and refers to the current page index/number.
+// The pageSize parameter refers to the number of items on each page.
+// And the total parameter specifies the total number of data items.
+// If total is less than 0, it means total is unknown.
+func NewFromGinRequest(c *gin.Context, total int, items interface{}) *Pages {
+	pageIndex, pageSize := GetPaginationParametersFromRequest(c)
+
 	if pageSize <= 0 {
 		pageSize = DefaultPageSize
 	}
@@ -44,28 +71,22 @@ func New(page, pageSize, total int) *Pages {
 	if total >= 0 {
 		pageCount = (total + pageSize - 1) / pageSize
 	}
-
-	return &Pages{
-		Page:       page,
+	paginatedResult := &Pages{
+		Page:       pageIndex,
 		PageSize:   pageSize,
 		TotalCount: total,
 		PageCount:  pageCount,
+		Items:      items,
 	}
+	c.Header("Page Links", paginatedResult.BuildLinkHeader(c.Request.URL.Path, DefaultPageSize))
+	return paginatedResult
 }
 
-// NewFromRequest creates a Pages object using the query parameters found in the given HTTP request.
-// count stands for the total number of items. Use -1 if this is unknown.
-// func NewFromRequest(req *http.Request, count int) *Pages {
-// 	page := parseInt(req.URL.Query().Get(PageVar), 1)
-// 	pageSize := parseInt(req.URL.Query().Get(PageSizeVar), DefaultPageSize)
-// 	return New(page, pageSize, count)
+// func NewFromGinRequest(c *gin.Context, count int, items interface{}) *Pages {
+// 	pageIndex, pageSize := GetPaginationParametersFromRequest(c)
+
+// 	return New(c, pageIndex, pageSize, count, items)
 // }
-
-func NewFromGinRequest(g *gin.Context, count int) *Pages {
-	page := parseInt(g.Query(PageVar), 1)
-	pageSize := parseInt(g.Query(PageSizeVar), DefaultPageSize)
-	return New(page, pageSize, count)
-}
 
 func GetPaginationParametersFromRequest(c *gin.Context) (pageIndex, pageSize int) {
 	pageIndex = parseInt(c.Query(PageVar), 1)
@@ -143,10 +164,15 @@ func (p *Pages) BuildLinks(baseURL string, defaultPageSize int) [4]string {
 	if pageSize := p.PageSize; pageSize != defaultPageSize {
 		for i := 0; i < 4; i++ {
 			if links[i] != "" {
+				zap.L().Debug("ok")
 				links[i] += fmt.Sprintf("&%v=%v", PageSizeVar, pageSize)
 			}
 		}
 	}
 
 	return links
+}
+
+func (p *Pages) SetItems(items interface{}) {
+	p.Items = items
 }

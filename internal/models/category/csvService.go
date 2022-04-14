@@ -6,10 +6,12 @@ import (
 	"sync"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
+	"go.uber.org/zap"
 )
 
-// readBooksWithWorkerPool: Reading a csv file concurrently and returns a book slice with the books in the file
+// readCategoriesWithWorkerPool: Reading a csv file concurrently and returns a categories slice
 func readCategoriesWithWorkerPool(fileHeader *multipart.FileHeader) ([]models.Category, error) {
+	zap.L().Debug("category.csvService.readCategoriesWithWorkerPool")
 	const numJobs = 5
 	categories := []models.Category{}
 	jobs := make(chan []string, numJobs)
@@ -23,12 +25,14 @@ func readCategoriesWithWorkerPool(fileHeader *multipart.FileHeader) ([]models.Ca
 	go func() {
 		f, err := fileHeader.Open()
 		if err != nil {
+			zap.L().Error("category.csvService.readCategoriesWithWorkerPool cannot open file", zap.Error(err))
 			return
 		}
 		defer f.Close()
 
 		lines, err := csv.NewReader(f).ReadAll()
 		if err != nil {
+			zap.L().Error("category.csvService.readCategoriesWithWorkerPool cannot read csv file", zap.Error(err))
 			return
 		}
 		for _, line := range lines[1:] {

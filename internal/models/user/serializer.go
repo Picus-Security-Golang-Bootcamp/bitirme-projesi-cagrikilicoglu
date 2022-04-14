@@ -9,18 +9,6 @@ import (
 
 var userRole = "user"
 
-func userToResponse(u *models.User) *api.User {
-
-	return &api.User{
-		Email:     u.Email,
-		Password:  u.Password,
-		FirstName: &u.FirstName,
-		LastName:  &u.LastName,
-		ZipCode:   &u.ZipCode,
-	}
-
-}
-
 func responseToUser(u *api.User) (*models.User, error) {
 
 	zap.L().Debug("User.serializer.responseToUser", zap.Reflect("user", u))
@@ -37,10 +25,10 @@ func responseToUser(u *api.User) (*models.User, error) {
 		ZipCode:   *u.ZipCode,
 		Role:      userRole,
 	}, nil
-
 }
 
 func getHash(pwd []byte) (*string, error) {
+
 	zap.L().Debug("User.serializer.getHash")
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
@@ -51,3 +39,13 @@ func getHash(pwd []byte) (*string, error) {
 	hashStr := string(hash)
 	return &hashStr, nil
 }
+
+// func userToResponse(u *models.User) *api.User {
+// 	return &api.User{
+// 		Email:     u.Email,
+// 		Password:  u.Password,
+// 		FirstName: &u.FirstName,
+// 		LastName:  &u.LastName,
+// 		ZipCode:   &u.ZipCode,
+// 	}
+// }

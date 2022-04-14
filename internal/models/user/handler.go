@@ -28,7 +28,6 @@ func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authent
 	r.POST("/signup", h.create)
 	r.POST("/login", h.login)
 	r.POST("/refresh", middleware.RefreshMiddleware(h.auth.Cfg.JWTConfig.RefreshSecretKey), h.Refresh)
-
 }
 
 func (u *userHandler) create(c *gin.Context) {
@@ -115,6 +114,7 @@ func (u *userHandler) login(c *gin.Context) {
 }
 
 func (u *userHandler) Refresh(c *gin.Context) {
+
 	userID, _ := c.Get("userID")
 	email, _ := c.Get("email")
 	role, _ := c.Get("role")

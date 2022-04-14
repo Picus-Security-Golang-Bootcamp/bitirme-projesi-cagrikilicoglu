@@ -29,8 +29,8 @@ func AdminAuthMiddleware(secretKey string) gin.HandlerFunc {
 					return
 				}
 			}
-			response.RespondWithError(c, errors.New("You are not allowed to use this endpoint"))
 			c.Abort()
+			response.RespondWithError(c, errors.New("You are not allowed to use this endpoint"))
 			return
 		} else {
 			c.Abort()
@@ -62,8 +62,9 @@ func UserAuthMiddleware(secretKey string) gin.HandlerFunc {
 					return
 				}
 			}
-			response.RespondWithError(c, errors.New("You are not allowed to use this endpoint"))
 			c.Abort()
+			response.RespondWithError(c, errors.New("You are not allowed to use this endpoint"))
+
 			return
 		} else {
 			c.Abort()

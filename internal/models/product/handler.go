@@ -85,7 +85,8 @@ func (p *productHandler) getAll(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	paginatedResult := pagination.NewFromGinRequest(c, count)
+	paginatedResult := pagination.NewFromGinRequest(c, count, productsToResponse(products))
+	// TODO alttaki iki satır silinecek
 	paginatedResult.Items = productsToResponse(products)
 	c.Header("Page Links", paginatedResult.BuildLinkHeader(c.Request.URL.Path, pageSize))
 	response.RespondWithJson(c, http.StatusOK, paginatedResult)

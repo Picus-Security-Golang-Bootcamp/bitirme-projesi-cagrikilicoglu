@@ -2,11 +2,9 @@ package category
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
-	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
@@ -22,25 +20,33 @@ type categoryHandler struct {
 	repo *CategoryRepository
 }
 
-// type ApiResponse struct {
-// 	Payload interface{} `json:"data"`
-// }
-
 func NewCategoryHandler(r *gin.RouterGroup, repo *CategoryRepository, cfg *config.Config) {
 	h := &categoryHandler{repo: repo}
 
-	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
-	r.POST("/upload", h.createFromFile, middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
 	r.GET("/", h.getAll)
-	r.GET("/:name", h.getByName)
-	// r.Use(middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey))
-	// r.POST("/create", h.create)
-	// r.GET("/:id", h.getByID)
-	// // r.GET("", h.getBySKU)
-	// r.GET("", h.getByName)
+	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
+	r.POST("/upload", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.createFromFile)
+	r.GET("/:name", h.getProductsByCategoryName)
 }
 
-func (ch *categoryHandler) getByName(c *gin.Context) {
+func (ch *categoryHandler) getAll(c *gin.Context) {
+
+	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
+	zap.L().Debug("category.handler.getAll with pagination", zap.Reflect("pageIndex", pageIndex), zap.Reflect("pageSize", pageSize))
+
+	categories, count, err := ch.repo.getAll(pageIndex, pageSize)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+
+	paginatedResult := pagination.NewFromGinRequest(c, count, categoriesToResponse(categories))
+
+	response.RespondWithJson(c, http.StatusOK, paginatedResult)
+}
+
+func (ch *categoryHandler) getProductsByCategoryName(c *gin.Context) {
+
 	name := c.Param("name")
 	zap.L().Debug("category.handler.getByName", zap.Reflect("name", name))
 
@@ -49,24 +55,13 @@ func (ch *categoryHandler) getByName(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
+	// TODO prdouctları serialize etmek gerekir
 	response.RespondWithJson(c, http.StatusOK, category.Products)
 }
 
-func (ch *categoryHandler) getAll(c *gin.Context) {
-	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
-
-	categories, count, err := ch.repo.getAll(pageIndex, pageSize)
-	if err != nil {
-		response.RespondWithError(c, err)
-		return
-	}
-	paginatedResult := pagination.NewFromGinRequest(c, count)
-	paginatedResult.Items = categoriesToResponse(categories)
-	c.Header("Page Links", paginatedResult.BuildLinkHeader(c.Request.URL.Path, pageSize))
-	response.RespondWithJson(c, http.StatusOK, paginatedResult)
-}
-
 func (ch *categoryHandler) createFromFile(c *gin.Context) {
+
+	zap.L().Debug("category.handler.createFromFile")
 	data, err := c.FormFile("file")
 	if err != nil {
 		response.RespondWithError(c, err)
@@ -78,51 +73,43 @@ func (ch *categoryHandler) createFromFile(c *gin.Context) {
 	// 	response.RespondWithError(c, errors.New("wrong file type"))
 	// 	return
 	// }
+
 	results, err := readCategoriesWithWorkerPool(data)
 	if err != nil {
 		response.RespondWithError(c, errors.New("file cannot be read"))
-	}
-	// TODO hangilerinin succesful hangilerin unsuccesfull olduğunu ekle
-	var successfulCategories []models.Category
-	var unsuccessfulCategories []models.Category
-	for i, v := range results {
-		category, err := ch.repo.Create(&results[i])
-		if err != nil {
-			// tempCat := results[i]
-			unsuccessfulCategories = append(unsuccessfulCategories, v)
-			continue
-		}
-		successfulCategories = append(successfulCategories, *category)
-	}
-	if len(successfulCategories) > 0 {
-		response.RespondWithJson(c, http.StatusCreated, categoriesToResponse(&successfulCategories))
-	}
-	//TODO burası pointer arrayi dönüyor Mutlaka bak
-	if len(unsuccessfulCategories) > 0 {
-		zap.L().Debug("unsuccessfulCategories", zap.Reflect("uns", unsuccessfulCategories))
-		// responseCat := categoriesToResponse(&unsuccessfulCategories)
-		response.RespondWithError(c, fmt.Errorf("Categories %v already exists", categoriesToResponse(&unsuccessfulCategories)))
+		return
 	}
 
+	// TODO batch create var olanları göster eklenebilir.
+	categories, err := ch.repo.batchCreate(results)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+
+	response.RespondWithJson(c, http.StatusCreated, categoriesToResponse(&categories))
 }
 
 func (ch *categoryHandler) create(c *gin.Context) {
+	zap.L().Debug("category.handler.create")
 	categoryBody := &api.Category{}
 
+	zap.L().Debug("category.handler.create.Bind", zap.Reflect("categoryBody", categoryBody))
 	if err := c.Bind(&categoryBody); err != nil {
 		response.RespondWithError(c, err)
 		return
 	}
+	zap.L().Debug("category.handler.create.Validate")
 	if err := categoryBody.Validate(strfmt.NewFormats()); err != nil {
 		response.RespondWithError(c, err)
 		return
 	}
 
-	category, err := ch.repo.Create(responseToCategory(categoryBody))
+	category, err := ch.repo.create(responseToCategory(categoryBody))
 	if err != nil {
 		response.RespondWithError(c, err)
+		return
 	}
 
-	response.RespondWithJson(c, http.StatusCreated, category)
-	// c.JSON(http.StatusOK, productsToResponse(products))
+	response.RespondWithJson(c, http.StatusCreated, categoryToResponse(category))
 }
