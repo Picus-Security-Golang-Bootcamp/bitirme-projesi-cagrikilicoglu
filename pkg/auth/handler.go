@@ -37,7 +37,7 @@ func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.To
 		"email":  email,
 		"iat":    time.Now().Unix(),
 		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(1 * time.Minute).Unix(),
+		"exp":    time.Now().Add(15 * time.Minute).Unix(),
 		// "exp":   time.Now().Add(30 * time.Second).Unix(),
 		"roles": role,
 	})
@@ -95,7 +95,7 @@ func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens 
 		"email":  email,
 		"iat":    time.Now().Unix(),
 		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(1 * time.Minute).Unix(),
+		"exp":    time.Now().Add(15 * time.Minute).Unix(),
 		// "exp":   time.Now().Add(30 * time.Second).Unix(),
 		"roles": role,
 	})

@@ -16,6 +16,23 @@ type ProductRepository struct {
 func NewProductRepository(db *gorm.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
+func (pr *ProductRepository) updateBySKU(sku string, p *models.Product) (*models.Product, error) {
+	zap.L().Debug("product.repo.update", zap.Reflect("product", p))
+
+	// result := pr.db.Model(models.Product{}).Where("sku = ?", sku)
+
+	// if result.Error != nil {
+	// 	zap.L().Error("product.repo.Update failed to update product", zap.Error(result.Error))
+	// 	return nil, result.Error
+	// }
+	// resultUpdates := result.Updates(p)
+	// zap.L().Debug("product.repo.update", zap.Reflect("resultUpdates", result))
+	if err := pr.db.Model(models.Product{}).Where("sku = ?", sku).Updates(p).First(p).Error; err != nil {
+		zap.L().Error("product.repo.Update failed to update product", zap.Error(err))
+		return nil, err
+	}
+	return p, nil
+}
 
 func (pr *ProductRepository) Create(p *models.Product) (*models.Product, error) {
 	zap.L().Debug("product.repo.create", zap.Reflect("product", p))
@@ -59,6 +76,15 @@ func (pr *ProductRepository) getAll(pageIndex, pageSize int) (*[]models.Product,
 	return products, count, nil
 }
 
+// func (pr *ProductRepository) delete(p *models.Product) error {
+// 	result := pr.db.Delete(p)
+// 	if result.Error != nil {
+// 		return result.Error
+// 	}
+
+// 	return nil
+
+// }
 func (pr *ProductRepository) GetCount() (int, error) {
 	var count int64
 	var products *[]models.Product
@@ -106,25 +132,25 @@ func (pr *ProductRepository) getByName(name string) (*[]models.Product, error) {
 	return &products, nil
 }
 
-func (pr *ProductRepository) update(p *models.Product) (*models.Product, error) {
-	zap.L().Debug("product.repo.update", zap.Reflect("product", p))
+// func (pr *ProductRepository) update(p *models.Product) (*models.Product, error) {
+// 	zap.L().Debug("product.repo.update", zap.Reflect("product", p))
 
-	if result := pr.db.Save(&p); result.Error != nil {
-		return nil, result.Error
-	}
+// 	if result := pr.db.Save(&p); result.Error != nil {
+// 		return nil, result.Error
+// 	}
 
-	return p, nil
-}
+// 	return p, nil
+// }
 
-func (pr *ProductRepository) delete(sku string) error {
+func (pr *ProductRepository) deleteBySKU(sku string) error {
 	zap.L().Debug("product.repo.delete", zap.Reflect("sku", sku))
 
-	product, err := pr.GetBySKU(sku)
-	if err != nil {
-		return err
-	}
+	// product, err := pr.GetBySKU(sku)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if result := pr.db.Delete(&product); result.Error != nil {
+	if result := pr.db.Where("sku = ?", sku).Delete(&models.Product{}); result.Error != nil {
 		return result.Error
 	}
 

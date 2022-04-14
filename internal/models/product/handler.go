@@ -29,8 +29,53 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository, cfg *config.
 	r.GET("/id/:id", h.getByID)
 	r.GET("/sku/:sku", h.GetBySKU)
 	r.GET("", h.getByName)
+	r.DELETE("/delete/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.deleteBySKU)
+	r.PUT("/update/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.updateBySKU)
 }
 
+func (p *productHandler) updateBySKU(c *gin.Context) {
+	sku := c.Param("sku")
+	productBody := &api.Product{}
+
+	if err := c.Bind(&productBody); err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	if err := productBody.Validate(strfmt.NewFormats()); err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+
+	product, err := p.repo.updateBySKU(sku, responseToProduct(productBody))
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	// product, err :=p.repo.GetBySKU(sku)
+	// if err != nil {
+	// 	response.RespondWithError(c, err)
+	// 	return
+	// }
+
+	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
+
+}
+func (p *productHandler) deleteBySKU(c *gin.Context) {
+	sku := c.Param("sku")
+
+	// product, err := p.repo.GetBySKU(sku)
+	// if err != nil {
+	// 	response.RespondWithError(c, err)
+	// 	return
+	// }
+	err := p.repo.deleteBySKU(sku)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	response.RespondWithJson(c, http.StatusOK, fmt.Sprintf("Product successfully deleted"))
+
+}
 func (p *productHandler) getAll(c *gin.Context) {
 
 	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
