@@ -22,8 +22,8 @@ func RespondWithJson(c *gin.Context, code int, payload interface{}) {
 	// 	return
 	// }
 
-	codeStr := strconv.Itoa(code) // TODO daha iyi handle et
-	c.Header("code", codeStr)
+	// codeStr := strconv.Itoa(code) // TODO daha iyi handle et
+	c.Header("code", strconv.Itoa(code))
 	c.JSON(code, payload)
 }
 

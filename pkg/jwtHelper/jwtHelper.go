@@ -15,18 +15,18 @@ type DecodedToken struct {
 	Iss    string `json:"iss"`
 }
 
-func GenerateToken(claims *jwt.Token, secret string) string {
-	zap.L().Debug("jwtHelper.GenerateToken", zap.Reflect("token", &claims))
+func GenerateToken(claims *jwt.Token, secret string) (*string, error) {
 
-	hmacSecretStr := secret
-	hmacSecret := []byte(hmacSecretStr)
+	zap.L().Debug("jwtHelper.GenerateToken", zap.Reflect("claims", &claims))
+
+	hmacSecret := []byte(secret)
 	token, err := claims.SignedString(hmacSecret)
 
-	// TODO erroru handle et
 	if err != nil {
-		// response.RespondWithError(c, err)
+		zap.L().Error("jwtHelper.GenerateToken failed to generate Token", zap.Error(err))
+		return nil, err
 	}
-	return token
+	return &token, nil
 }
 
 func VerifyToken(token string, secret string) *DecodedToken {

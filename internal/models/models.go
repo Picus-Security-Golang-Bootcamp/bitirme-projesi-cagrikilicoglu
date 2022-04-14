@@ -52,6 +52,11 @@ type User struct {
 	Orders []Order `json:"orders"`
 }
 
+type Login struct {
+	Email    *string `json:"email" gorm:"unique"`
+	Password *string `json:"password"`
+}
+
 type Cart struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time

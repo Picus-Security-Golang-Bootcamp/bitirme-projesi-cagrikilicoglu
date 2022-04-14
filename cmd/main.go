@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
@@ -20,6 +18,7 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/pkg/auth"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/database"
+	"github.com/cagrikilicoglu/shopping-basket/pkg/graceful"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -95,7 +94,6 @@ func main() {
 	baseRooter := router.Group(cfg.ServerConfig.RoutePrefix)
 	productRooter := baseRooter.Group("/products")
 	categoryRouter := baseRooter.Group("/categories")
-	// authRouter := baseRooter.Group("/user") // TODO başından user'ı sil
 
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
@@ -105,16 +103,12 @@ func main() {
 	categoryRepo.Migration()
 	category.NewCategoryHandler(categoryRouter, categoryRepo, cfg)
 
-	// auth.NewAuthHandler(authRouter, cfg)
-
 	auth := auth.NewAuthenticator(cfg)
 	fmt.Printf("auth: %s", cfg.JWTConfig.SecretKey)
 
 	userRepo := user.NewUserRepository(db)
 	userRepo.Migration()
 	user.NewUserHandler(baseRooter, userRepo, auth) // TODO base routter değiştiilebilir
-
-	// CreateAdmin(userRepo)
 
 	// SampleQueries(*productRepo)
 
@@ -131,6 +125,7 @@ func main() {
 
 	order.NewOrderHandler(baseRooter, orderRepo, cartRepo, itemService, cfg)
 
+	// CreateAdmin(userRepo)
 	// TODO aşağıdaki fonksiyonu kontrol et
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
@@ -141,7 +136,7 @@ func main() {
 	baseRooter.GET("/health", checkHealth)
 	// TODO aşağıyı anonymous func gibi handle etmeli?
 	// baseRooter.GET("/ready", checkReady())
-	GracefulShutdown(srv, 15*time.Second)
+	graceful.Shutdown(srv, time.Duration(int64(cfg.ServerConfig.ShutdownTimeoutSecs)*int64(time.Second)))
 }
 
 // TODO aşağıdaki fonksiyonları sil
@@ -236,21 +231,21 @@ func SampleQueries(productRepo product.ProductRepository) {
 }
 
 // TODO başka bir yere taşı
-func GracefulShutdown(srv *http.Server, timeout time.Duration) {
-	c := make(chan os.Signal, 1)
+// func GracefulShutdown(srv *http.Server, timeout time.Duration) {
+// 	c := make(chan os.Signal, 1)
 
-	// when there is a interrupt signal, relay it to the channel
-	signal.Notify(c, os.Interrupt)
+// 	// when there is a interrupt signal, relay it to the channel
+// 	signal.Notify(c, os.Interrupt)
 
-	// block until any signal is received by the channel
-	<-c
+// 	// block until any signal is received by the channel
+// 	<-c
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+// 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+// 	defer cancel()
 
-	// wait until the timeout deadline and shutdown the server if there is no connections. if there is no connection shutdown immediately
-	srv.Shutdown(ctx)
+// 	// wait until the timeout deadline and shutdown the server if there is no connections. if there is no connection shutdown immediately
+// 	srv.Shutdown(ctx)
 
-	log.Println("shutting down the server")
-	os.Exit(0)
-}
+// 	log.Println("shutting down the server")
+// 	os.Exit(0)
+// }

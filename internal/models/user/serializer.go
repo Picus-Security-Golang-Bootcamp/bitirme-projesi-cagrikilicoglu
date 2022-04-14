@@ -1,12 +1,13 @@
 package user
 
 import (
-	"log"
-
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var userRole = "user"
 
 func userToResponse(u *models.User) *api.User {
 
@@ -20,29 +21,33 @@ func userToResponse(u *models.User) *api.User {
 
 }
 
-func responseToUser(u *api.User) *models.User {
+func responseToUser(u *api.User) (*models.User, error) {
 
-	encryptedPassword := getHash([]byte(*u.Password))
-	// var roles []models.Role
-	// roles = append(roles, models.Role{Role: "user"})
-	role := "user"
+	zap.L().Debug("User.serializer.responseToUser", zap.Reflect("user", u))
+	encryptedPassword, err := getHash([]byte(*u.Password))
+	if err != nil {
+		return nil, err
+	}
+
 	return &models.User{
-
 		Email:     u.Email,
-		Password:  &encryptedPassword,
+		Password:  encryptedPassword,
 		FirstName: *u.FirstName,
 		LastName:  *u.LastName,
 		ZipCode:   *u.ZipCode,
-		Role:      role,
-		// Cart:      models.Cart{}, //TODO düzelt
-	}
+		Role:      userRole,
+	}, nil
 
 }
 
-func getHash(pwd []byte) string {
+func getHash(pwd []byte) (*string, error) {
+	zap.L().Debug("User.serializer.getHash")
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
-		log.Println(err) // TODO başka şekilde handle et
+		zap.L().Error("User.serializer.getHash cannot generate hash from password")
+		return nil, err
 	}
-	return string(hash)
+
+	hashStr := string(hash)
+	return &hashStr, nil
 }

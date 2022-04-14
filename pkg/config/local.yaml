@@ -7,11 +7,14 @@ ServerConfig:
   TimeoutSecs: 60
   ReadTimeoutSecs: 60
   WriteTimeoutSecs: 12
+  ShutdownTimeoutSecs: 15
 
 JWTConfig:
   SessionTime: 3600
   SecretKey: dummySecretKey
   SecretKetRefresh: refreshSecretKey
+  AccessTokenDurationMins: 15
+  RefreshTokenDurationHours: 168
 
 DBConfig:
   DataSourceName: user=postgres dbname=shopping-basket-app password=Gopher822 host=localhost sslmode=disable

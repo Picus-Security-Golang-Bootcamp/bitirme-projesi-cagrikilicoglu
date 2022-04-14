@@ -17,21 +17,24 @@ type Config struct {
 
 // ServerConfig
 type ServerConfig struct {
-	Port             int    `yaml:"Port"`
-	TimeoutSecs      int    `yaml:"TimeoutSecs"`
-	ReadTimeoutSecs  int    `yaml:"ReadTimeoutSecs"`
-	WriteTimeoutSecs int    `yaml:"WriteTimeoutSecs"`
-	AppVersion       string `yaml:"AppVersion"`
-	Mode             string `yaml:"Mode"`
-	RoutePrefix      string `yaml:"RoutePrefix"`
-	Debug            bool   `yaml:"Debug"`
+	Port                int    `yaml:"Port"`
+	TimeoutSecs         int    `yaml:"TimeoutSecs"`
+	ReadTimeoutSecs     int    `yaml:"ReadTimeoutSecs"`
+	WriteTimeoutSecs    int    `yaml:"WriteTimeoutSecs"`
+	AppVersion          string `yaml:"AppVersion"`
+	Mode                string `yaml:"Mode"`
+	RoutePrefix         string `yaml:"RoutePrefix"`
+	Debug               bool   `yaml:"Debug"`
+	ShutdownTimeoutSecs int    `yaml:"ShutdownTimeoutSecs"`
 }
 
 // JWTConfig
 type JWTConfig struct {
-	SessionTime      int    `yaml:"SessionTime"`
-	SecretKey        string `yaml:"SecretKey"`
-	RefreshSecretKey string `yaml:"RefreshSecretKey"`
+	SessionTime               int    `yaml:"SessionTime"`
+	SecretKey                 string `yaml:"SecretKey"`
+	RefreshSecretKey          string `yaml:"RefreshSecretKey"`
+	AccessTokenDurationMins   int    `yaml:"AccessTokenDurationMins"`
+	RefreshTokenDurationHours int    `yaml:"RefreshTokenDurationHours"`
 }
 
 // DBConfig

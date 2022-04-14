@@ -23,51 +23,50 @@ func NewAuthenticator(cfg *config.Config) *Authenticator {
 	return &Authenticator{Cfg: cfg}
 }
 
-func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) models.Tokens {
+func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) (*models.Tokens, error) {
 
-	// zap.L().Debug("authenticator.authenticate.jwtaccessclaims.before",
-	// 	zap.Reflect("key", a.cfg.JWTConfig.SecretKey))
-	// TODO aşağıdakiler debug için
-	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
+	zap.L().Debug("authenticator.Authenticate.jwtNewWithClaims.Access",
 		zap.Reflect("id", id),
 		zap.Reflect("email", email),
 		zap.Reflect("role", role))
 	jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": id,
 		"email":  email,
-		"iat":    time.Now().Unix(),
+		"roles":  role,
 		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(15 * time.Minute).Unix(),
-		// "exp":   time.Now().Add(30 * time.Second).Unix(),
-		"roles": role,
+		"iat":    time.Now().Unix(),
+		"exp":    time.Now().Add(time.Duration(a.Cfg.JWTConfig.AccessTokenDurationMins) * time.Minute).Unix(),
 	})
-	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
-		zap.Reflect("jwtAccesClaims", jwtAccessClaims))
-	zap.L().Debug("authenticator.authenticate.secret",
-		zap.Reflect("secretKey", a.Cfg.JWTConfig.SecretKey))
 
-	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
-	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
-		zap.Reflect("accesstoken", accessToken))
+	zap.L().Debug("authenticator.Authenticate.GenerateToken.access", zap.Reflect("jwtAccessClaims", jwtAccessClaims))
+	accessToken, err := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
+	if err != nil {
+		return nil, err
+	}
 
+	zap.L().Debug("authenticator.Authenticate.jwtNewWithClaims.Refresh")
 	jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": id,
 		"email":  email,
-		"iat":    time.Now().Unix(),
-		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
 		"roles":  role,
+		"iss":    os.Getenv("APP_ENV"),
+		"iat":    time.Now().Unix(),
+		"exp":    time.Now().Add(time.Duration(a.Cfg.JWTConfig.RefreshTokenDurationHours) * time.Hour).Unix(),
 	})
 
-	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
-
-	tokens := models.Tokens{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+	zap.L().Debug("authenticator.Authenticate.GenerateToken.refresh", zap.Reflect("jwtRefreshClaims", jwtRefreshClaims))
+	refreshToken, err := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
+	if err != nil {
+		return nil, err
 	}
 
-	return tokens
+	tokens := models.Tokens{
+		AccessToken:  *accessToken,
+		RefreshToken: *refreshToken,
+	}
+	return &tokens, err
 }
+
 func (a *Authenticator) VerifyAccessToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	decodedToken := jwtHelper.VerifyToken(token, a.Cfg.JWTConfig.SecretKey)
@@ -81,7 +80,7 @@ func (a *Authenticator) VerifyRefreshToken(c *gin.Context) {
 
 }
 
-func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens {
+func (a *Authenticator) Refresh(id uuid.UUID, email, role string) (*models.Tokens, error) {
 
 	// zap.L().Debug("authenticator.authenticate.jwtaccessclaims.before",
 	// 	zap.Reflect("key", a.cfg.JWTConfig.SecretKey))
@@ -104,7 +103,11 @@ func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens 
 	zap.L().Debug("authenticator.refresh.secret",
 		zap.Reflect("secretKey", a.Cfg.JWTConfig.SecretKey))
 
-	accessToken := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
+	accessToken, err := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
+	if err != nil {
+		return nil, err
+	}
+
 	zap.L().Debug("authenticator.authenticate.jwtaccessclaims",
 		zap.Reflect("accesstoken", accessToken))
 
@@ -117,14 +120,17 @@ func (a *Authenticator) Refresh(id uuid.UUID, email, role string) models.Tokens 
 		"roles":  role,
 	})
 
-	refreshToken := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
-
-	tokens := models.Tokens{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+	refreshToken, err := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
+	if err != nil {
+		return nil, err
 	}
 
-	return tokens
+	tokens := models.Tokens{
+		AccessToken:  *accessToken,
+		RefreshToken: *refreshToken,
+	}
+
+	return &tokens, nil
 }
 
 // func (a *Authenticator) Refresh(c *gin.Context) {
