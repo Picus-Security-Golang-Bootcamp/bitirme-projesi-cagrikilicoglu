@@ -187,6 +187,7 @@ func (is *ItemService) Update(c *gin.Context) error {
 	totalPrice := item.Product.Price * float32(item.Quantity)
 	item.TotalPrice = totalPrice
 
+	zap.L().Debug("itemservice.create.quantity parsed", zap.Reflect("item", item))
 	err = is.itemRepo.update(item)
 	if err != nil {
 		return err
@@ -272,11 +273,22 @@ func (is *ItemService) Order(c *gin.Context) error {
 		return err
 	}
 
+	// TODO order serializerındaki gibi daha iyi handle edilebilir.
 	for i := range *items {
 		itemsDeref := *items
 
 		zap.L().Debug("item.order", zap.Reflect("item", itemsDeref))
-		err := is.itemRepo.order(&itemsDeref[i], parsedOrderId)
+
+		productSKU := &itemsDeref[i].Product.Stock.SKU
+		quantity := &itemsDeref[i].Quantity
+		zap.L().Debug("item.order.updateStock", zap.Reflect("productSKU", productSKU), zap.Reflect("quantity", quantity))
+		err := is.productRepo.UpdateStock(*productSKU, *quantity)
+		if err != nil {
+			zap.L().Error("order.service.UpdateStock failed to update product", zap.Error(err))
+			return err
+		}
+
+		err = is.itemRepo.order(&itemsDeref[i], parsedOrderId)
 		if err != nil {
 			return err
 		}

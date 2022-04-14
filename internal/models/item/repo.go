@@ -105,18 +105,25 @@ func (ir *ItemRepository) getItemWithProductID(id, cartID uuid.UUID) (*models.It
 	var item *models.Item
 	// id, err := is.pro
 	// result := ir.db.Preload(clause.Associations).Where(&models.Item{Product: models.Product{Stock: models.Stock{SKU: sku}}, CartID: cartID}).First(&item)
-	result := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).First(&item)
-
+	// result := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id, IsOrdered: false}).First(&item)
+	// zap.L().Debug("item.repo.GetItemByProductID.resultcheck", zap.Reflect("result", result))
 	zap.L().Debug("item.repo.GetItemByProductID.itemcheck", zap.Reflect("item", item))
-	if result.Error != nil {
-		zap.L().Error("item.repo.GetItemByProductID failed to get item", zap.Error(result.Error))
-		return nil, result.Error
+	if err := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).First(&item).Error; err != nil {
+		zap.L().Error("item.repo.GetItemByProductID failed to get item", zap.Error(err))
+		return nil, err
 	}
+	zap.L().Debug("item.repo.GetItemByProductID.itemcheck", zap.Reflect("item", item))
 	return item, nil
 }
 
 func (ir *ItemRepository) update(i *models.Item) error {
-	if err := ir.db.Preload("Product").Omit("OrderID").Save(i).Error; err != nil {
+	zap.L().Debug("item.repo.update.item", zap.Reflect("item", i))
+	// if err := ir.db.Preload("Product").Select("OrderID").Save(i).Error; err != nil {
+
+	result := ir.db.Model(&i).Preload("Product").Select("quantity").Update("quantity", int(i.Quantity))
+
+	zap.L().Debug("item.repo.update.item.result", zap.Reflect("result", i))
+	if err := result.Error; err != nil {
 		zap.L().Error("item.repo.update failed to update item", zap.Error(err))
 		return err
 	}

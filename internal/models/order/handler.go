@@ -14,6 +14,7 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 // TODO aşağıdakini başka bir yere taşıyabilir miyiz? config gibi
@@ -60,7 +61,8 @@ func (oh *orderHandler) cancelOrder(c *gin.Context) {
 		return
 	}
 
-	allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
+	// allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
+	allowedCancelDeadline := order.CreatedAt.Add(time.Minute * 1)
 	if !time.Now().Before(allowedCancelDeadline) {
 		response.RespondWithError(c, errors.New("Order cannot be canceled after 14 days :("))
 		return
@@ -89,7 +91,10 @@ func (oh *orderHandler) getOrders(c *gin.Context) {
 		response.RespondWithError(c, err)
 	}
 	orders, err := oh.orderRepo.getWithUserID(currentUserIDParsed)
-	response.RespondWithJson(c, http.StatusOK, ordersToResponse(orders))
+	zap.L().Debug("order.handler.getorders", zap.Reflect("orders", orders))
+	responsed := ordersToResponse(orders)
+	zap.L().Debug("order.handler.getorders", zap.Reflect("responsed", responsed))
+	response.RespondWithJson(c, http.StatusOK, responsed)
 
 }
 
@@ -115,8 +120,16 @@ func (oh *orderHandler) placeOrder(c *gin.Context) {
 	}
 	c.Set("orderID", order.ID)
 
-	oh.itemService.Order(c)
-	oh.itemService.ClearCart(c)
+	err = oh.itemService.Order(c)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	err = oh.itemService.ClearCart(c)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
 	orderPlaced, err := oh.orderRepo.getWithID(order.ID)
 	if err != nil {
 		response.RespondWithError(c, errors.New("Order cannot be placed"))

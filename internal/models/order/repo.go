@@ -20,11 +20,12 @@ func NewOrderRepository(db *gorm.DB) *OrderRepository {
 }
 
 func (or *OrderRepository) delete(o *models.Order) error {
+	zap.L().Debug("Order.repo.delete2", zap.Reflect("Order", o))
 	result := or.db.Delete(o)
 	if result.Error != nil {
 		return result.Error
 	}
-
+	zap.L().Debug("Order.repo.delete2", zap.Reflect("Order", o))
 	return nil
 }
 
@@ -45,6 +46,8 @@ func (or *OrderRepository) getWithID(id uuid.UUID) (*models.Order, error) {
 		zap.L().Error("order.repo.getWithID failed to create Cart", zap.Error(err))
 		return nil, err
 	}
+	zap.L().Debug("Order.repo.getwithid", zap.Reflect("Order", o))
+
 	return o, nil
 }
 func (or *OrderRepository) getWithUserID(id uuid.UUID) (*[]models.Order, error) {

@@ -21,7 +21,7 @@ func orderToResponse(o *models.Order) *api.Order {
 	for i := range o.Items {
 		apiItems = append(apiItems, itemToResponse(&o.Items[i]))
 	}
-
+	zap.L().Debug("Order.serializer.orderToResponse", zap.Reflect("totalPrice", &o.TotalPrice), zap.Reflect("status", o.Status))
 	return &api.Order{
 		ID:         &idStr,
 		Items:      apiItems,
@@ -34,8 +34,12 @@ func orderToResponse(o *models.Order) *api.Order {
 
 func ordersToResponse(os *[]models.Order) []*api.Order {
 	orders := make([]*api.Order, 0)
-	for _, o := range *os {
-		orders = append(orders, orderToResponse(&o))
+	for i, o := range *os {
+		// TODO aşağısı daha iyi handler edilebilir.
+		osDeref := *os
+		zap.L().Debug("Order.serializer.ordersToResponse", zap.Reflect("o", o))
+		orders = append(orders, orderToResponse(&osDeref[i]))
+		// zap.L().Debug("Order.serializer.ordersToResponse", zap.Reflect("orders", orders))
 	}
 	return orders
 }

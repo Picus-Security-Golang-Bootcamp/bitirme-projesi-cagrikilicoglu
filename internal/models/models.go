@@ -174,7 +174,7 @@ func (o *Order) AfterDelete(tx *gorm.DB) (err error) {
 	zap.L().Debug("order.afterdelete", zap.Reflect("id", o.ID))
 
 	// TODO erroru handle et
-	tx.Model(&o).Unscoped().Where("id = ?", o.ID).Update("status", statusCanceled)
+	tx.Model(&o).Unscoped().Where("id = ?", o.ID).Select("status").Update("status", statusCanceled)
 	// order := tx.Model(&o).First(&o)
 	// zap.L().Debug("order.afterdeletew", zap.Reflect("order", order))
 	return
