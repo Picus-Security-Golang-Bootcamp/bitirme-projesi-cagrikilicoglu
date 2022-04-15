@@ -109,12 +109,12 @@ func (pr *ProductRepository) updateBySKU(sku string, p *models.Product) (*models
 	return p, nil
 }
 
+/////// ------- ////////
 // TODO içine GetBySKU fonksiyonu alabilir
 func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
 	zap.L().Debug("product.repo.GetIDBySKU", zap.Reflect("SKU", sku))
 
 	product, err := pr.GetBySKU(sku)
-	// var product *models.Product
 	if err != nil {
 		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
 		return uuid.Nil, err

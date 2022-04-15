@@ -23,6 +23,8 @@ type Repository interface {
 	update(i *models.Item) error
 	removeFromCart(i *models.Item) error
 	order(i *models.Item, orderID uuid.UUID) error
+	deleteItemWithProductID(id, cartID uuid.UUID) error
+	updateItemWithProductID(id, cartID uuid.UUID, quantity int, price float32) error
 	// // Update updates the basket with given Is in the storage.
 	// Update(ctx context.Context, basket Basket) error
 	// // Delete removes the basket with given Is from the storage.
@@ -42,6 +44,18 @@ func NewItemRepository(db *gorm.DB) *ItemRepository {
 	return &ItemRepository{db: db}
 }
 
+func (ir *ItemRepository) getItemsInCart(cartID uuid.UUID) (*[]models.Item, error) {
+	zap.L().Debug("item.repo.GetItemsInCart", zap.Reflect("cartID", cartID))
+	var items *[]models.Item
+
+	result := ir.db.Where("is_ordered", false).Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
+	if result.Error != nil {
+		zap.L().Error("item.repo.GetItemsInCart failed to get items", zap.Error(result.Error))
+		return nil, result.Error
+	}
+	return items, nil
+}
+
 func (ir *ItemRepository) create(i *models.Item) (*models.Item, error) {
 	zap.L().Debug("item.repo.create", zap.Reflect("item", i))
 
@@ -50,6 +64,40 @@ func (ir *ItemRepository) create(i *models.Item) (*models.Item, error) {
 		return nil, err
 	}
 	return i, nil
+}
+func (ir *ItemRepository) deleteItemWithProductID(id, cartID uuid.UUID) error {
+	zap.L().Debug("item.repo.deleteItemWithProductID", zap.Reflect("ID", id), zap.Reflect("cartID", cartID))
+	result := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).Delete(&models.Item{})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+
+}
+
+func (ir *ItemRepository) updateItemWithProductID(id, cartID uuid.UUID, quantity int, price float32) error {
+	zap.L().Debug("item.repo.updateItemWithProductID", zap.Reflect("ID", id), zap.Reflect("cartID", cartID))
+
+	// result := ir.db.Model(&models.Item{}).Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).Select("quantity").Update("quantity", quantity)
+
+	result := ir.db.Model(&models.Item{}).Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).Select("quantity", "total_price").Updates(map[string]interface{}{"quantity": quantity, "total_price": price})
+
+	if err := result.Error; err != nil {
+		zap.L().Error("item.repo.updateItemWithProductID failed to update item", zap.Error(err))
+		return err
+	}
+	return nil
+}
+func (ir *ItemRepository) getItemWithProductID(id, cartID uuid.UUID) (*models.Item, error) {
+	zap.L().Debug("item.repo.GetItemByProductID", zap.Reflect("ID", id), zap.Reflect("cartID", cartID))
+
+	var item *models.Item
+	if err := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).First(&item).Error; err != nil {
+		zap.L().Error("item.repo.getItemWithProductID failed to get item", zap.Error(err))
+		return nil, err
+	}
+	return item, nil
 }
 
 // func (ir *ItemRepository) update(i *models.Item) (*models.Item, error) {
@@ -86,34 +134,6 @@ func (ir *ItemRepository) delete(i *models.Item) error {
 
 	return nil
 
-}
-func (ir *ItemRepository) getItemsInCart(cartID uuid.UUID) (*[]models.Item, error) {
-	zap.L().Debug("item.repo.GetItemsInCart", zap.Reflect("cartID", cartID))
-	var items *[]models.Item
-	// TODO clause associations'ı productsa çevirebilir miyiz?
-	result := ir.db.Where("is_ordered", false).Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return items, nil
-
-}
-
-func (ir *ItemRepository) getItemWithProductID(id, cartID uuid.UUID) (*models.Item, error) {
-	zap.L().Debug("item.repo.GetItemByProductID", zap.Reflect("ID", id))
-
-	var item *models.Item
-	// id, err := is.pro
-	// result := ir.db.Preload(clause.Associations).Where(&models.Item{Product: models.Product{Stock: models.Stock{SKU: sku}}, CartID: cartID}).First(&item)
-	// result := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id, IsOrdered: false}).First(&item)
-	// zap.L().Debug("item.repo.GetItemByProductID.resultcheck", zap.Reflect("result", result))
-	zap.L().Debug("item.repo.GetItemByProductID.itemcheck", zap.Reflect("item", item))
-	if err := ir.db.Preload("Product").Where(&models.Item{CartID: cartID, ProductID: id}).Where("is_ordered = ?", false).First(&item).Error; err != nil {
-		zap.L().Error("item.repo.GetItemByProductID failed to get item", zap.Error(err))
-		return nil, err
-	}
-	zap.L().Debug("item.repo.GetItemByProductID.itemcheck", zap.Reflect("item", item))
-	return item, nil
 }
 
 func (ir *ItemRepository) update(i *models.Item) error {

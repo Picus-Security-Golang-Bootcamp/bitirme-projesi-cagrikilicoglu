@@ -18,61 +18,32 @@ func NewCartRepository(db *gorm.DB) *CartRepository {
 	return &CartRepository{db: db}
 }
 
-func (cr *CartRepository) Create(u *models.User) (*models.Cart, error) {
-
-	var c *models.Cart
-	// c.User = u
-	zap.L().Debug("Cart.repo.create", zap.Reflect("Cart", c))
-	if err := cr.db.Create(c).Error; err != nil {
-		zap.L().Error("Cart.repo.Create failed to create Cart", zap.Error(err))
-		return nil, err
-	}
-	return c, nil
-}
-
 func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 	var c *models.Cart
 	zap.L().Debug("Cart.repo.getByUserID", zap.Reflect("id", id))
 	if err := cr.db.Preload("Items.Product").Preload("Items", "is_ordered = ?", false).Where("user_id = ?", id).First(&c).Error; err != nil {
-		zap.L().Error("Cart.repo.Create failed to get Cart", zap.Error(err))
+		zap.L().Error("Cart.repo.getByUserID failed to get Cart", zap.Error(err))
 		return nil, err
 	}
 	return c, nil
-
 }
 
-// func (cr *CartRepository) AddItem(c *models.Cart) (*models.Cart, error) {
-// 	zap.L().Debug("product.cart.AddItem", zap.Reflect("cart", c))
-
-// 	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
-// 		return nil, result.Error
-// 	}
-
-// 	return c, nil
-
-// }
-
-// func (cr *CartRepository) DeleteItem(c *models.Cart) (*models.Cart, error) {
-// 	zap.L().Debug("cart.delete.deleteItem", zap.Reflect("cart", c))
-
-// 	if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
-// 		return nil, result.Error
-// 	}
-
-// 	return c, nil
-
-// }
+func (cr *CartRepository) GetByCartID(id string) (*models.Cart, error) {
+	var c *models.Cart
+	zap.L().Debug("Cart.repo.GetByCartID", zap.Reflect("id", id))
+	if err := cr.db.Preload("Items.Product").Preload("Items", "is_ordered = ?", false).Where("id = ?", id).First(&c).Error; err != nil {
+		zap.L().Error("Cart.repo.GetByCartID failed to get Cart", zap.Error(err))
+		return nil, err
+	}
+	return c, nil
+}
 
 func (cr *CartRepository) UpdateTotalPrice(c *models.Cart, totalPrice float32) error {
-	zap.L().Debug("cart.update.updateTotalPrice", zap.Reflect("cart", c))
-	// // TODO preload'a gerek var mı?
-	// if result := cr.db.Preload("Items.Product").Preload("Items").Save(&c); result.Error != nil {
+	zap.L().Debug("cart.update.updateTotalPrice", zap.Reflect("cart", c), zap.Reflect("totalPrice", totalPrice))
+
 	if result := cr.db.Model(&c).Select("TotalPrice").Update("total_price", totalPrice); result.Error != nil {
+		zap.L().Error("cart.update.updateTotalPrice failed to get update total price", zap.Error(result.Error))
 		return result.Error
 	}
 	return nil
 }
-
-// func(cr *CartRepository) CheckProduct(c *models.Cart,sku string) (bool){
-// 	if result :=  cr.db.Preload("Items.Product").Preload("Items").Where(c.Items.Product)
-// }

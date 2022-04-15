@@ -94,6 +94,7 @@ func main() {
 	baseRooter := router.Group(cfg.ServerConfig.RoutePrefix)
 	productRooter := baseRooter.Group("/products")
 	categoryRouter := baseRooter.Group("/categories")
+	cartRouter := baseRooter.Group("/cart")
 
 	productRepo := product.NewProductRepository(db)
 	productRepo.Migration()
@@ -121,7 +122,7 @@ func main() {
 	itemRepo.Migration()
 	itemService := item.NewItemService(itemRepo, *productRepo)
 
-	cart.NewCartHandler(baseRooter, cartRepo, itemService, cfg)
+	cart.NewCartHandler(cartRouter, cartRepo, itemService, cfg)
 
 	order.NewOrderHandler(baseRooter, orderRepo, cartRepo, itemService, cfg)
 
