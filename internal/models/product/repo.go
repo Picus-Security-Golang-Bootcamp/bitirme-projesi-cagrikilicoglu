@@ -1,10 +1,7 @@
 package product
 
 import (
-	"fmt"
-
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -109,34 +106,6 @@ func (pr *ProductRepository) updateBySKU(sku string, p *models.Product) (*models
 	return p, nil
 }
 
-/////// ------- ////////
-// TODO içine GetBySKU fonksiyonu alabilir
-func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
-	zap.L().Debug("product.repo.GetIDBySKU", zap.Reflect("SKU", sku))
-
-	product, err := pr.GetBySKU(sku)
-	if err != nil {
-		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
-		return uuid.Nil, err
-	}
-	return product.ID, nil
-}
-
-func (pr *ProductRepository) CheckStock(sku string, quantity uint) (*models.Product, error) {
-
-	zap.L().Debug("product.repo.CheckStock", zap.Reflect("SKU", sku))
-	product, err := pr.GetBySKU(sku)
-	if err != nil {
-		zap.L().Error("product.repo.CheckStock failed to get product", zap.Error(err))
-		return nil, err
-	}
-	if product.Stock.Number < quantity {
-		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", *product.Name, (product.Stock.Number + 1))
-	}
-
-	return product, nil
-}
-
 func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
 
 	if result := pr.db.Model(models.Product{}).Where("sku = ?", sku).Select("number").Update("number", gorm.Expr("number - ?", quantity)); result.Error != nil {
@@ -147,12 +116,30 @@ func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
 
 }
 
-// func (pr *ProductRepository) update(p *models.Product) (*models.Product, error) {
-// 	zap.L().Debug("product.repo.update", zap.Reflect("product", p))
+/////// ------- ////////
+// TODO içine GetBySKU fonksiyonu alabilir
+// func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
+// 	zap.L().Debug("product.repo.GetIDBySKU", zap.Reflect("SKU", sku))
 
-// 	if result := pr.db.Save(&p); result.Error != nil {
-// 		return nil, result.Error
+// 	product, err := pr.GetBySKU(sku)
+// 	if err != nil {
+// 		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
+// 		return uuid.Nil, err
+// 	}
+// 	return product.ID, nil
+// }
+
+// func (pr *ProductRepository) CheckStock(sku string, quantity uint) (*models.Product, error) {
+
+// 	zap.L().Debug("product.repo.CheckStock", zap.Reflect("SKU", sku))
+// 	product, err := pr.GetBySKU(sku)
+// 	if err != nil {
+// 		zap.L().Error("product.repo.CheckStock failed to get product", zap.Error(err))
+// 		return nil, err
+// 	}
+// 	if product.Stock.Number < quantity {
+// 		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", *product.Name, (product.Stock.Number + 1))
 // 	}
 
-// 	return p, nil
+// 	return product, nil
 // }

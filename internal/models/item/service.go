@@ -157,12 +157,6 @@ func (is *ItemService) Create(c *gin.Context) (*models.Item, error) {
 		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", *product.Name, (product.Stock.Number + 1))
 	}
 
-	// TODO aşğaıyı sil
-	// _, err = is.productRepo.CheckStock(sku, uint(quantityInt))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	totalPrice := product.Price * float32(quantityInt)
 	parsedCartId, err := is.parsedCartIdFromCtx(c)
 	if err != nil {

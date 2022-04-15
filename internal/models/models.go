@@ -45,9 +45,8 @@ type User struct {
 	LastName  string         `json:"lastName"`
 	ZipCode   string         `json:"zipCode"`
 	Role      string         `json:"role"`
-	// CartID    uint      `json:"cartId"`
-	Cart   Cart    `json:"cart"`
-	Orders []Order `json:"orders"`
+	Cart      Cart           `json:"cart"`
+	Orders    []Order        `json:"orders"`
 }
 
 type Login struct {
@@ -74,7 +73,6 @@ type Order struct {
 	Items      []Item         `json:"items"`
 	TotalPrice float32        `json:"totalPrice"`
 	Status     string         `json:"status"`
-	// TrackingNumber string         `json:"trackingNumber"`
 }
 
 type Item struct {
@@ -88,53 +86,17 @@ type Item struct {
 	TotalPrice float32        `json:"totalPrice"`
 	CartID     uuid.UUID      `json:"cartId"`
 	OrderID    uuid.UUID      `json:"orderId,omitempty" gorm:"default:null"`
-	// OrderedAt  time.Time      `json:"orderedAt" gorm:"default:null"`
-	IsOrdered bool `json:"isOrdered" gorm:"default:false"`
+	IsOrdered  bool           `json:"isOrdered" gorm:"default:false"`
 }
-
-type Price struct {
-	Amount       uint   `json:"amount"`
-	CurrencyCode string `json:"currencyCode"`
-}
-
-// type Role struct {
-// 	Role string `json:"role"`
-// }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	u.Cart.ID = uuid.New()
-	// TODO erroru handle et
-	// if !u.IsValid() {
-	// 	err = errors.New("can't save invalid data")
-	// }
 	return
 }
 
-// TODO aşağıdaki iki fonksiyonu başka bir yere alabilir miyiz?
-// func (c *Cart) AfterUpdate(tx *gorm.DB) (err error) {
-// 	zap.L().Debug("cart.afterupdate")
-// 	c.CalculatePrice()
-// 	return
-// }
-// func (c *Cart) AfterDelete(tx *gorm.DB) (err error) {
-// 	c.CalculatePrice()
-// 	return
-// }
-
-// func (c *Cart) CalculatePrice() {
-// 	c.TotalPrice = 0
-// 	for i := range c.Items {
-// 		c.TotalPrice += c.Items[i].TotalPrice
-// 	}
-// }
-
 func (c *Category) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = uuid.New()
-	// TODO erroru handle et
-	// if !u.IsValid() {
-	// 	err = errors.New("can't save invalid data")
-	// }
 	return
 }
 
@@ -142,18 +104,10 @@ func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}
-	// TODO erroru handle et
-	// if !u.IsValid() {
-	// 	err = errors.New("can't save invalid data")
-	// }
 	return
 }
 func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {
 	i.ID = uuid.New()
-	// TODO erroru handle et
-	// if !u.IsValid() {
-	// 	err = errors.New("can't save invalid data")
-	// }
 	return
 }
 
@@ -165,10 +119,6 @@ var (
 func (o *Order) BeforeCreate(tx *gorm.DB) (err error) {
 	o.ID = uuid.New()
 	o.Status = statusPlaced
-	// TODO erroru handle et
-	// if !u.IsValid() {
-	// 	err = errors.New("can't save invalid data")
-	// }
 	return
 }
 
@@ -176,10 +126,10 @@ func (o *Order) AfterDelete(tx *gorm.DB) (err error) {
 
 	zap.L().Debug("order.afterdelete", zap.Reflect("id", o.ID))
 
-	// TODO erroru handle et
-	tx.Model(&o).Unscoped().Where("id = ?", o.ID).Select("status").Update("status", statusCanceled)
-	// order := tx.Model(&o).First(&o)
-	// zap.L().Debug("order.afterdeletew", zap.Reflect("order", order))
+	result := tx.Model(&o).Unscoped().Where("id = ?", o.ID).Select("status").Update("status", statusCanceled)
+	if result.Error != nil {
+		return result.Error
+	}
 	return
 }
 
@@ -187,13 +137,3 @@ type Tokens struct {
 	AccessToken  string
 	RefreshToken string
 }
-
-// func (c *Cart) BeforeCreate(tx *gorm.DB) (err error) {
-// 	c.ID = uuid.New()
-
-// 	// if !u.IsValid() {
-// 	// 	err = errors.New("can't save invalid data")
-// 	// }
-// 	return
-// }
-//
