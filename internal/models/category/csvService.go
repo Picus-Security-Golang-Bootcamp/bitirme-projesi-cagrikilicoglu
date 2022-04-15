@@ -55,7 +55,7 @@ func readCategoriesWithWorkerPool(fileHeader *multipart.FileHeader) ([]models.Ca
 }
 
 // TODO fonksiyon commentleri
-// toStruct: creates a book struct as the data from the file is read and send the struct to results channel
+// toStruct: creates a category struct as the data from the file is read and send the struct to results channel
 func toStruct(jobs <-chan []string, results chan<- models.Category, wg *sync.WaitGroup) {
 	defer wg.Done()
 

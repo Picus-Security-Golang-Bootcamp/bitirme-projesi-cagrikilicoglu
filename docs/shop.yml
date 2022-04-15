@@ -438,16 +438,12 @@ definitions:
     type: "object"
     required:
       - "sku"
-      - "number"
-      - "status"
     properties:
       sku:
         type: "string"
       number:
         type: "integer"
         format: "uint32"
-      status:
-        type: "string"
   Category:
     type: "object"
     required:

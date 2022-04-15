@@ -182,53 +182,53 @@ func checkReady(c *gin.Context, db *gorm.DB) {
 	response.RespondWithJson(c, http.StatusOK, nil)
 }
 
-func SampleQueries(productRepo product.ProductRepository) {
-	nameStr := "nikeAirForce1"
-	catNameStr := "Shoes"
-	nikeAirForce1 := models.Product{
-		Name:  &nameStr,
-		Price: 30,
-		// Price: models.Price{Amount: 90, CurrencyCode: "USD"},
-		Stock: models.Stock{
-			SKU:    "1234F",
-			Number: 15,
-			Status: "decreasing",
-		},
-		CategoryName: &catNameStr,
-	}
-	nameStr2 := "logiMouse"
-	catNameStr2 := "Technology"
-	logitechMouse := models.Product{
-		Name:  &nameStr2,
-		Price: 12.4,
-		// Price: models.Price{Amount: 12, CurrencyCode: "USD"},
-		Stock: models.Stock{
-			SKU:    "9874U",
-			Number: 90,
-			Status: "enough",
-		},
-		CategoryName: &catNameStr2,
-	}
-	productRepo.Create(&nikeAirForce1)
-	productRepo.Create(&logitechMouse)
+// func SampleQueries(productRepo product.ProductRepository) {
+// 	nameStr := "nikeAirForce1"
+// 	catNameStr := "Shoes"
+// 	nikeAirForce1 := models.Product{
+// 		Name:  &nameStr,
+// 		Price: 30,
+// 		// Price: models.Price{Amount: 90, CurrencyCode: "USD"},
+// 		Stock: models.Stock{
+// 			SKU:    "1234F",
+// 			Number: 15,
+// 			Status: "decreasing",
+// 		},
+// 		CategoryName: &catNameStr,
+// 	}
+// 	nameStr2 := "logiMouse"
+// 	catNameStr2 := "Technology"
+// 	logitechMouse := models.Product{
+// 		Name:  &nameStr2,
+// 		Price: 12.4,
+// 		// Price: models.Price{Amount: 12, CurrencyCode: "USD"},
+// 		Stock: models.Stock{
+// 			SKU:    "9874U",
+// 			Number: 90,
+// 			Status: "enough",
+// 		},
+// 		CategoryName: &catNameStr2,
+// 	}
+// 	productRepo.Create(&nikeAirForce1)
+// 	productRepo.Create(&logitechMouse)
 
-	// result1, _ := productRepo.GetAll()
+// result1, _ := productRepo.GetAll()
 
-	// for _, v := range result1 {
-	// 	log.Println(*v)
-	// }
+// for _, v := range result1 {
+// 	log.Println(*v)
+// }
 
-	// log.Println(productRepo.GetByName("Mo"))
-	// result1, _ := productRepo.GetBySKU("1234F")
-	// log.Println(*result1)
-	// log.Println(productRepo.GetBySKU("1234F"))
-	// log.Println(productRepo.Delete("9874U"))
+// log.Println(productRepo.GetByName("Mo"))
+// result1, _ := productRepo.GetBySKU("1234F")
+// log.Println(*result1)
+// log.Println(productRepo.GetBySKU("1234F"))
+// log.Println(productRepo.Delete("9874U"))
 
-	// nikeAirForce1.Price.Subtract(money.New(20, "USD"))
-	// log.Println(productRepo.Update(&nikeAirForce1))
-	// log.Println(productRepo.GetAll)
+// nikeAirForce1.Price.Subtract(money.New(20, "USD"))
+// log.Println(productRepo.Update(&nikeAirForce1))
+// log.Println(productRepo.GetAll)
 
-}
+// }
 
 // TODO başka bir yere taşı
 // func GracefulShutdown(srv *http.Server, timeout time.Duration) {

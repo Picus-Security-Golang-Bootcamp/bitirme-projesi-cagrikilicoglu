@@ -20,31 +20,18 @@ import (
 type Stock struct {
 
 	// number
-	// Required: true
-	Number *uint32 `json:"number"`
+	Number uint32 `json:"number,omitempty"`
 
 	// sku
 	// Required: true
 	Sku *string `json:"sku"`
-
-	// status
-	// Required: true
-	Status *string `json:"status"`
 }
 
 // Validate validates this stock
 func (m *Stock) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateNumber(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateSku(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateStatus(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -54,27 +41,9 @@ func (m *Stock) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Stock) validateNumber(formats strfmt.Registry) error {
-
-	if err := validate.Required("number", "body", m.Number); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *Stock) validateSku(formats strfmt.Registry) error {
 
 	if err := validate.Required("sku", "body", m.Sku); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *Stock) validateStatus(formats strfmt.Registry) error {
-
-	if err := validate.Required("status", "body", m.Status); err != nil {
 		return err
 	}
 

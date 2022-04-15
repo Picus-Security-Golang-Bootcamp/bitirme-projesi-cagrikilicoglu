@@ -39,18 +39,8 @@ func (cr *CategoryRepository) batchCreate(cs []models.Category) ([]models.Catego
 	return cs, nil
 }
 
-func (cr *CategoryRepository) GetCount() (int, error) {
-	var count int64
-	var categories *[]models.Category
-	// TODO BURAYı getcount gibi bir fonksiyonla handle edebiliriz.
-	if err := cr.db.Find(&categories).Count(&count).Error; err != nil {
-		zap.L().Error("category.repo.getCount failed to get categories count", zap.Error(err))
-		return -1, err
-	}
-	return int(count), nil
-}
-
 func (cr *CategoryRepository) getAll(pageIndex, pageSize int) (*[]models.Category, int, error) {
+
 	zap.L().Debug("category.repo.getAll")
 	var categories *[]models.Category
 	var count int64

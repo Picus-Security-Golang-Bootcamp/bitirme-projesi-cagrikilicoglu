@@ -9,11 +9,9 @@ import (
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/pagination"
-	"go.uber.org/zap"
-
-	// "github.com/cagrikilicoglu/shopping-basket/pkg/csvHelper"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/strfmt"
+	"go.uber.org/zap"
 )
 
 type categoryHandler struct {

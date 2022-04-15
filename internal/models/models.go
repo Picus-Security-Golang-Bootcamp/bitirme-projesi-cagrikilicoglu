@@ -10,8 +10,7 @@ import (
 
 type Stock struct {
 	SKU    string `json:"sku" gorm:"unique"`
-	Number uint   `json:"number"`
-	Status string `json:"status"`
+	Number uint   `json:"number,omitempty"`
 }
 
 type Product struct {
@@ -23,7 +22,6 @@ type Product struct {
 	Price        float32        `json:"price"`
 	Stock        Stock          `json:"stock" gorm:"embedded"`
 	CategoryName *string        `json:"categoryName"`
-	// Category     Category  `json:"category"`
 }
 
 type Category struct {
