@@ -138,14 +138,9 @@ func (pr *ProductRepository) CheckStock(sku string, quantity uint) (*models.Prod
 }
 
 func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
-	product, err := pr.CheckStock(sku, quantity)
-	if err != nil {
-		zap.L().Error("product.repo.Checkstock failed to get product", zap.Error(err))
-		return err
-	}
-	//TODO aşağıdaki çalışmıyor olabilir
-	if result := pr.db.Model(&product).Select("number").Update("number", (product.Stock.Number - quantity)); result.Error != nil {
-		zap.L().Error("product.repo.UpdateStock failed to update product", zap.Error(err))
+
+	if result := pr.db.Model(models.Product{}).Where("sku = ?", sku).Select("number").Update("number", gorm.Expr("number - ?", quantity)); result.Error != nil {
+		zap.L().Error("product.repo.UpdateStock failed to update product", zap.Error(result.Error))
 		return result.Error
 	}
 	return nil

@@ -75,6 +75,22 @@ func (is *ItemService) parsedCartIdFromCtx(c *gin.Context) (uuid.UUID, error) {
 	return parsedCartId, nil
 }
 
+func (is *ItemService) parsedOrderIdFromCtx(c *gin.Context) (uuid.UUID, error) {
+	orderID, ok := c.Get("orderID")
+	zap.L().Debug("itemservice.parsedOrderIdFromCtx", zap.Reflect("orderID", orderID))
+
+	if !ok {
+		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to fetch orderID", zap.Error(errors.New("orderID can not be fetched from context")))
+		return uuid.Nil, errors.New("Order data not found")
+	}
+	parsedOrderId, err := uuid.Parse(fmt.Sprintf("%v", orderID))
+	if err != nil {
+		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to parse orderID", zap.Error(errors.New("orderID can not be parsed")))
+		return uuid.Nil, err
+	}
+	return parsedOrderId, nil
+}
+
 func (is *ItemService) getItemsFromCartID(c *gin.Context) (*[]models.Item, error) {
 
 	cartID, err := is.parsedCartIdFromCtx(c)
@@ -237,6 +253,50 @@ func (is *ItemService) Update(c *gin.Context) (float32, error) {
 
 }
 
+func (is *ItemService) Order(c *gin.Context) error {
+
+	orderID, err := is.parsedOrderIdFromCtx(c)
+	zap.L().Debug("itemservice.Order", zap.Reflect("orderID", orderID))
+	if err != nil {
+		return err
+	}
+
+	items, err := is.getItemsFromCartID(c)
+	if err != nil {
+		return err
+	}
+
+	for i := range *items {
+		itemsDeref := *items
+
+		sku := &itemsDeref[i].Product.Stock.SKU
+		quantity := &itemsDeref[i].Quantity
+		product, err := is.productRepo.GetBySKU(*sku)
+		if err != nil {
+			return err
+		}
+		if product.Stock.Number < *quantity {
+			return fmt.Errorf("Not enough %s in the stock, please request less than %d", *product.Name, (product.Stock.Number + 1))
+		}
+
+		err = is.productRepo.UpdateStock(*sku, *quantity)
+		if err != nil {
+			return err
+		}
+
+		err = is.itemRepo.order(&itemsDeref[i], orderID)
+		if err != nil {
+			return err
+		}
+		err = is.itemRepo.removeFromCart(&itemsDeref[i])
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
 func (is *ItemService) ClearCart(c *gin.Context) error {
 
 	cartID, ok := c.Get("cartID")
@@ -255,58 +315,6 @@ func (is *ItemService) ClearCart(c *gin.Context) error {
 	for i := range *items {
 		itemsDeref := *items
 		err := is.itemRepo.removeFromCart(&itemsDeref[i])
-		if err != nil {
-			return err
-		}
-
-	}
-	return nil
-}
-
-func (is *ItemService) Order(c *gin.Context) error {
-
-	// zap.L().Debug("item.order", zap.Reflect("item", orderID))
-	orderID, ok := c.Get("orderID")
-
-	zap.L().Debug("item.order.head", zap.Reflect("item", orderID))
-	if !ok {
-		// response.RespondWithError(c, errors.New("Cart data not found"))
-		return errors.New("Order data not found")
-	}
-	parsedOrderId, err := uuid.Parse(fmt.Sprintf("%v", orderID))
-	if err != nil {
-		return err
-	}
-	cartID, ok := c.Get("cartID")
-	if !ok {
-		// response.RespondWithError(c, errors.New("Cart data not found"))
-		return errors.New("Cart data not found")
-	}
-	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
-	if err != nil {
-		return err
-	}
-	items, err := is.itemRepo.getItemsInCart(parsedCartId)
-	if err != nil {
-		return err
-	}
-
-	// TODO order serializerındaki gibi daha iyi handle edilebilir.
-	for i := range *items {
-		itemsDeref := *items
-
-		zap.L().Debug("item.order", zap.Reflect("item", itemsDeref))
-
-		productSKU := &itemsDeref[i].Product.Stock.SKU
-		quantity := &itemsDeref[i].Quantity
-		zap.L().Debug("item.order.updateStock", zap.Reflect("productSKU", productSKU), zap.Reflect("quantity", quantity))
-		err := is.productRepo.UpdateStock(*productSKU, *quantity)
-		if err != nil {
-			zap.L().Error("order.service.UpdateStock failed to update product", zap.Error(err))
-			return err
-		}
-
-		err = is.itemRepo.order(&itemsDeref[i], parsedOrderId)
 		if err != nil {
 			return err
 		}
