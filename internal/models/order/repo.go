@@ -52,7 +52,7 @@ func (or *OrderRepository) getWithID(id uuid.UUID) (*models.Order, error) {
 func (or *OrderRepository) getWithUserID(id uuid.UUID) (*[]models.Order, error) {
 
 	var orders *[]models.Order
-	if err := or.db.Unscoped().Preload("Items.Product").Preload("Items").Where("user_id", id).Find(&orders).Error; err != nil {
+	if err := or.db.Order("created_at").Unscoped().Preload("Items.Product").Preload("Items").Where("user_id", id).Find(&orders).Error; err != nil {
 		zap.L().Error("order.repo.getWithID failed get orders", zap.Error(err))
 		return nil, err
 	}

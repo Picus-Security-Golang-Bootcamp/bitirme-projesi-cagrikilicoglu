@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/cart"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/category"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/item"
@@ -23,7 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -140,30 +138,6 @@ func main() {
 	graceful.Shutdown(srv, time.Duration(int64(cfg.ServerConfig.ShutdownTimeoutSecs)*int64(time.Second)))
 }
 
-// TODO aşağıdaki fonksiyonları sil
-func getHash(pwd []byte) string {
-	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
-	if err != nil {
-		log.Println(err) // TODO başka şekilde handle et
-	}
-	return string(hash)
-}
-
-func CreateAdmin(userRepo *user.UserRepository) {
-	admin := "admin1234.com"
-	adminPass := getHash([]byte("admin1234"))
-	u := models.User{
-		Email:     &admin,
-		Password:  &adminPass,
-		FirstName: admin,
-		LastName:  admin,
-		Role:      "admin",
-		ZipCode:   admin,
-	}
-	userRepo.Create(&u)
-
-}
-
 func checkHealth(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, nil)
 }
@@ -183,70 +157,26 @@ func checkReady(c *gin.Context, db *gorm.DB) {
 	response.RespondWithJson(c, http.StatusOK, nil)
 }
 
-// func SampleQueries(productRepo product.ProductRepository) {
-// 	nameStr := "nikeAirForce1"
-// 	catNameStr := "Shoes"
-// 	nikeAirForce1 := models.Product{
-// 		Name:  &nameStr,
-// 		Price: 30,
-// 		// Price: models.Price{Amount: 90, CurrencyCode: "USD"},
-// 		Stock: models.Stock{
-// 			SKU:    "1234F",
-// 			Number: 15,
-// 			Status: "decreasing",
-// 		},
-// 		CategoryName: &catNameStr,
+// // TODO aşağıdaki fonksiyonları sil
+// func getHash(pwd []byte) string {
+// 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+// 	if err != nil {
+// 		log.Println(err) // TODO başka şekilde handle et
 // 	}
-// 	nameStr2 := "logiMouse"
-// 	catNameStr2 := "Technology"
-// 	logitechMouse := models.Product{
-// 		Name:  &nameStr2,
-// 		Price: 12.4,
-// 		// Price: models.Price{Amount: 12, CurrencyCode: "USD"},
-// 		Stock: models.Stock{
-// 			SKU:    "9874U",
-// 			Number: 90,
-// 			Status: "enough",
-// 		},
-// 		CategoryName: &catNameStr2,
-// 	}
-// 	productRepo.Create(&nikeAirForce1)
-// 	productRepo.Create(&logitechMouse)
-
-// result1, _ := productRepo.GetAll()
-
-// for _, v := range result1 {
-// 	log.Println(*v)
+// 	return string(hash)
 // }
 
-// log.Println(productRepo.GetByName("Mo"))
-// result1, _ := productRepo.GetBySKU("1234F")
-// log.Println(*result1)
-// log.Println(productRepo.GetBySKU("1234F"))
-// log.Println(productRepo.Delete("9874U"))
+// func CreateAdmin(userRepo *user.UserRepository) {
+// 	admin := "admin1234.com"
+// 	adminPass := getHash([]byte("admin1234"))
+// 	u := models.User{
+// 		Email:     &admin,
+// 		Password:  &adminPass,
+// 		FirstName: admin,
+// 		LastName:  admin,
+// 		Role:      "admin",
+// 		ZipCode:   admin,
+// 	}
+// 	userRepo.Create(&u)
 
-// nikeAirForce1.Price.Subtract(money.New(20, "USD"))
-// log.Println(productRepo.Update(&nikeAirForce1))
-// log.Println(productRepo.GetAll)
-
-// }
-
-// TODO başka bir yere taşı
-// func GracefulShutdown(srv *http.Server, timeout time.Duration) {
-// 	c := make(chan os.Signal, 1)
-
-// 	// when there is a interrupt signal, relay it to the channel
-// 	signal.Notify(c, os.Interrupt)
-
-// 	// block until any signal is received by the channel
-// 	<-c
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-// 	defer cancel()
-
-// 	// wait until the timeout deadline and shutdown the server if there is no connections. if there is no connection shutdown immediately
-// 	srv.Shutdown(ctx)
-
-// 	log.Println("shutting down the server")
-// 	os.Exit(0)
 // }

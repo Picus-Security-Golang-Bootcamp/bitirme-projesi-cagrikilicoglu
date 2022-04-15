@@ -34,30 +34,6 @@ type Pages struct {
 // The pageSize parameter refers to the number of items on each page.
 // And the total parameter specifies the total number of data items.
 // If total is less than 0, it means total is unknown.
-// func New(page, pageSize, total int) *Pages {
-// 	if pageSize <= 0 {
-// 		pageSize = DefaultPageSize
-// 	}
-// 	if pageSize > MaxPageSize {
-// 		pageSize = MaxPageSize
-// 	}
-// 	pageCount := -1
-// 	if total >= 0 {
-// 		pageCount = (total + pageSize - 1) / pageSize
-// 	}
-// 	return &Pages{
-// 		Page:       page,
-// 		PageSize:   pageSize,
-// 		TotalCount: total,
-// 		PageCount:  pageCount,
-// 	}
-// }
-
-// New creates a new Pages instance.
-// The page parameter is 1-based and refers to the current page index/number.
-// The pageSize parameter refers to the number of items on each page.
-// And the total parameter specifies the total number of data items.
-// If total is less than 0, it means total is unknown.
 func NewFromGinRequest(c *gin.Context, total int, items interface{}) *Pages {
 	pageIndex, pageSize := GetPaginationParametersFromRequest(c)
 
@@ -82,12 +58,6 @@ func NewFromGinRequest(c *gin.Context, total int, items interface{}) *Pages {
 	return paginatedResult
 }
 
-// func NewFromGinRequest(c *gin.Context, count int, items interface{}) *Pages {
-// 	pageIndex, pageSize := GetPaginationParametersFromRequest(c)
-
-// 	return New(c, pageIndex, pageSize, count, items)
-// }
-
 func GetPaginationParametersFromRequest(c *gin.Context) (pageIndex, pageSize int) {
 	pageIndex = parseInt(c.Query(PageVar), 1)
 	pageSize = parseInt(c.Query(PageSizeVar), DefaultPageSize)
@@ -104,16 +74,6 @@ func parseInt(value string, defaultValue int) int {
 	}
 	return defaultValue
 }
-
-// // Offset returns the OFFSET value that can be used in a SQL statement.
-// func (p *Pages) Offset() int {
-// 	return (p.Page - 1) * p.PageSize
-// }
-
-// // Limit returns the LIMIT value that can be used in a SQL statement.
-// func (p *Pages) Limit() int {
-// 	return p.PageSize
-// }
 
 // BuildLinkHeader returns an HTTP header containing the links about the pagination.
 func (p *Pages) BuildLinkHeader(baseURL string, defaultPageSize int) string {

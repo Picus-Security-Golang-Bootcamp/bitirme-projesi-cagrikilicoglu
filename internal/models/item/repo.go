@@ -38,7 +38,7 @@ func (ir *ItemRepository) getItemsInCart(cartID uuid.UUID) (*[]models.Item, erro
 	zap.L().Debug("item.repo.GetItemsInCart", zap.Reflect("cartID", cartID))
 	var items *[]models.Item
 
-	result := ir.db.Where("is_ordered", false).Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
+	result := ir.db.Order("created_at").Where("is_ordered", false).Where(&models.Item{CartID: cartID}).Preload("Product").Find(&items)
 	if result.Error != nil {
 		zap.L().Error("item.repo.GetItemsInCart failed to get items", zap.Error(result.Error))
 		return nil, result.Error
@@ -89,23 +89,12 @@ func (ir *ItemRepository) getItemWithProductID(id, cartID uuid.UUID) (*models.It
 	return item, nil
 }
 
-// func (ir *ItemRepository) update(i *models.Item) (*models.Item, error) {
-// 	zap.L().Debug("item.repo.update", zap.Reflect("item", i))
-
-// 	if err := ir.db.Preload("Products").Save(i).Error; err != nil {
-// 		zap.L().Error("item.repo.Save failed to save item", zap.Error(err))
-// 		return nil, err
-// 	}
-// 	return i, nil
-// }
-
 func (ir *ItemRepository) getItemWithProductSKU(sku string, cartID uuid.UUID) (*models.Item, error) {
 
 	zap.L().Debug("item.repo.GetItemByProductSKU", zap.Reflect("SKU", sku))
 
 	var item *models.Item
-	// id, err := is.pro
-	// result := ir.db.Preload(clause.Associations).Where(&models.Item{Product: models.Product{Stock: models.Stock{SKU: sku}}, CartID: cartID}).First(&item)
+
 	result := ir.db.Preload("Product").Where(&models.Item{CartID: cartID}).Joins("left join Product on item.Product_id = Product.id").Where("Product.sku = ?", sku).First(&item)
 
 	zap.L().Debug("item.repo.GetItemByProductSKU.itemcheck", zap.Reflect("item", item))

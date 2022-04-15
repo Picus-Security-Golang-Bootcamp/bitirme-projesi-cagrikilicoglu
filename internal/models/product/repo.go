@@ -81,7 +81,7 @@ func (pr *ProductRepository) getByName(name string) (*[]models.Product, error) {
 
 	var products = []models.Product{}
 
-	if result := pr.db.Where("Name ILIKE ?", "%"+name+"%").Find(&products); result.Error != nil {
+	if result := pr.db.Order("name").Where("Name ILIKE ?", "%"+name+"%").Find(&products); result.Error != nil {
 		zap.L().Error("product.repo.getByName failed to get products", zap.Error(result.Error))
 		return nil, result.Error
 	}
@@ -115,31 +115,3 @@ func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
 	return nil
 
 }
-
-/////// ------- ////////
-// TODO içine GetBySKU fonksiyonu alabilir
-// func (pr *ProductRepository) GetIDBySKU(sku string) (uuid.UUID, error) {
-// 	zap.L().Debug("product.repo.GetIDBySKU", zap.Reflect("SKU", sku))
-
-// 	product, err := pr.GetBySKU(sku)
-// 	if err != nil {
-// 		zap.L().Error("product.repo.GetIDBySKU failed to get product", zap.Error(err))
-// 		return uuid.Nil, err
-// 	}
-// 	return product.ID, nil
-// }
-
-// func (pr *ProductRepository) CheckStock(sku string, quantity uint) (*models.Product, error) {
-
-// 	zap.L().Debug("product.repo.CheckStock", zap.Reflect("SKU", sku))
-// 	product, err := pr.GetBySKU(sku)
-// 	if err != nil {
-// 		zap.L().Error("product.repo.CheckStock failed to get product", zap.Error(err))
-// 		return nil, err
-// 	}
-// 	if product.Stock.Number < quantity {
-// 		return nil, fmt.Errorf("Not enough %s in the stock,please request less than %d", *product.Name, (product.Stock.Number + 1))
-// 	}
-
-// 	return product, nil
-// }
