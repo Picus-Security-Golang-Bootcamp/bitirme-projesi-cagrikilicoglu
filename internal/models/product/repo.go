@@ -52,6 +52,7 @@ func (pr *ProductRepository) getAll(pageIndex, pageSize int) (*[]models.Product,
 	return products, int(count), nil
 }
 
+//TODO uuid
 func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 
 	zap.L().Debug("product.repo.getByID", zap.Reflect("id", id))

@@ -6,6 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRepo interface {
+	Migration()
+	Create(u *models.User) (*models.User, error)
+	get(email string) (*models.User, error)
+}
 type UserRepository struct {
 	db *gorm.DB
 }
@@ -14,7 +19,7 @@ func (ur *UserRepository) Migration() {
 	ur.db.AutoMigrate(&models.User{})
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
+func NewUserRepository(db *gorm.DB) UserRepo {
 	return &UserRepository{db: db}
 }
 

@@ -15,11 +15,11 @@ import (
 )
 
 type cartHandler struct {
-	repo        *CartRepository
+	repo        CartRepo
 	itemService item.Service
 }
 
-func NewCartHandler(r *gin.RouterGroup, repo *CartRepository, is item.Service, cfg *config.Config) {
+func NewCartHandler(r *gin.RouterGroup, repo CartRepo, is item.Service, cfg *config.Config) {
 	h := &cartHandler{repo: repo,
 		itemService: is}
 

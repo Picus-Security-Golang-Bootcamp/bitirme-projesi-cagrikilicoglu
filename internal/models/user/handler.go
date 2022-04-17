@@ -17,11 +17,11 @@ import (
 )
 
 type userHandler struct {
-	repo *UserRepository
+	repo UserRepo
 	auth *auth.Authenticator
 }
 
-func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authenticator) {
+func NewUserHandler(r *gin.RouterGroup, repo UserRepo, auth *auth.Authenticator) {
 	h := &userHandler{repo: repo,
 		auth: auth}
 

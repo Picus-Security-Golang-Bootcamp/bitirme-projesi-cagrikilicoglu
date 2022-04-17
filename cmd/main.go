@@ -123,7 +123,6 @@ func main() {
 	cart.NewCartHandler(cartRouter, cartRepo, itemService, cfg)
 
 	order.NewOrderHandler(baseRooter, orderRepo, cartRepo, itemService, cfg)
-
 	// CreateAdmin(userRepo)
 	// TODO aşağıdaki fonksiyonu kontrol et
 	go func() {
@@ -136,6 +135,7 @@ func main() {
 	// TODO aşağıyı anonymous func gibi handle etmeli?
 	// baseRooter.GET("/ready", checkReady())
 	graceful.Shutdown(srv, time.Duration(int64(cfg.ServerConfig.ShutdownTimeoutSecs)*int64(time.Second)))
+
 }
 
 func checkHealth(c *gin.Context) {
