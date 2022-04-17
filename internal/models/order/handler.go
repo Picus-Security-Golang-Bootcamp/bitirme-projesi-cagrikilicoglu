@@ -17,7 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// TODO aşağıdakini başka bir yere taşıyabilir miyiz? config gibi
 var (
 	maxAllowedCancelDay = 14
 	minOrderPrice       = 50
@@ -40,6 +39,7 @@ func NewOrderHandler(r *gin.RouterGroup, orderRepo *OrderRepository, cartRepo ca
 
 }
 
+// placeOrder creates an order and returns created
 func (oh *orderHandler) placeOrder(c *gin.Context) {
 
 	cart, err := oh.getCartFromUserID(c)
@@ -82,6 +82,7 @@ func (oh *orderHandler) placeOrder(c *gin.Context) {
 
 }
 
+// cancelOrder cancels an order if the date is before allowed cancel deadline
 func (oh *orderHandler) cancelOrder(c *gin.Context) {
 
 	id := c.Param("id")
@@ -100,8 +101,6 @@ func (oh *orderHandler) cancelOrder(c *gin.Context) {
 	}
 
 	allowedCancelDeadline := order.CreatedAt.AddDate(0, 0, maxAllowedCancelDay)
-	// TODO remove line below
-	// allowedCancelDeadline := order.CreatedAt.Add(time.Minute * 1)
 	if !time.Now().Before(allowedCancelDeadline) {
 		response.RespondWithError(c, errors.New("Order cannot be canceled after 14 days :("))
 		return
@@ -115,6 +114,7 @@ func (oh *orderHandler) cancelOrder(c *gin.Context) {
 
 }
 
+// getOrders fetches orders of a user by userID
 func (oh *orderHandler) getOrders(c *gin.Context) {
 
 	userID, ok := c.Get("userID")
@@ -133,6 +133,7 @@ func (oh *orderHandler) getOrders(c *gin.Context) {
 
 }
 
+// createOrderFromCart places an order from cart
 func createOrderFromCart(c *models.Cart) (*models.Order, error) {
 	if c.TotalPrice < float32(minOrderPrice) {
 		return nil, errors.New("Cart is below minimum order price of 50")
@@ -143,6 +144,7 @@ func createOrderFromCart(c *models.Cart) (*models.Order, error) {
 	}, nil
 }
 
+// getCartFromUserID fetches cart data by userID
 func (oh *orderHandler) getCartFromUserID(c *gin.Context) (*models.Cart, error) {
 
 	currentUserId, ok := c.Get("userID")

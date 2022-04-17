@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
@@ -24,7 +23,7 @@ type Service interface {
 	CheckProduct(c *gin.Context) (bool, error)
 	Update(c *gin.Context) (float32, error)
 	CalculatePrice(c *gin.Context) (float32, error)
-	ClearCart(c *gin.Context) error
+
 	Order(c *gin.Context) error
 	getItemsFromCartID(c *gin.Context) (*[]models.Item, error)
 	parsedCartIdFromCtx(c *gin.Context) (uuid.UUID, error)
@@ -40,6 +39,7 @@ func NewItemService(repo Repository, productRepo product.ProductRepository) Serv
 		productRepo: productRepo}
 }
 
+//AddItem adds a new item to the cart and returns its updated total price
 func (is *ItemService) AddItem(c *gin.Context) (float32, error) {
 	ok, err := is.CheckProduct(c)
 	if !ok {
@@ -58,40 +58,9 @@ func (is *ItemService) AddItem(c *gin.Context) (float32, error) {
 		return -1, err
 	}
 	return totalPrice, nil
-
-}
-func (is *ItemService) parsedCartIdFromCtx(c *gin.Context) (uuid.UUID, error) {
-	cartID, ok := c.Get("cartID")
-	zap.L().Debug("itemservice.parsedCartIdFromCtx", zap.Reflect("cartID", cartID))
-	if !ok {
-		zap.L().Error("itemservice.parsedCartIdFromCtx failed to fetch cartID", zap.Error(errors.New("cartID can not be fetched from context")))
-		return uuid.Nil, errors.New("Cart data not found")
-	}
-
-	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
-	if err != nil {
-		zap.L().Error("itemservice.parsedCartIdFromCtx failed to parse cartID", zap.Error(errors.New("cartID can not be parsed")))
-		return uuid.Nil, err
-	}
-	return parsedCartId, nil
 }
 
-func (is *ItemService) parsedOrderIdFromCtx(c *gin.Context) (uuid.UUID, error) {
-	orderID, ok := c.Get("orderID")
-	zap.L().Debug("itemservice.parsedOrderIdFromCtx", zap.Reflect("orderID", orderID))
-
-	if !ok {
-		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to fetch orderID", zap.Error(errors.New("orderID can not be fetched from context")))
-		return uuid.Nil, errors.New("Order data not found")
-	}
-	parsedOrderId, err := uuid.Parse(fmt.Sprintf("%v", orderID))
-	if err != nil {
-		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to parse orderID", zap.Error(errors.New("orderID can not be parsed")))
-		return uuid.Nil, err
-	}
-	return parsedOrderId, nil
-}
-
+//getItemsFromCartID fetches items in the cart from cartID
 func (is *ItemService) getItemsFromCartID(c *gin.Context) (*[]models.Item, error) {
 
 	cartID, err := is.parsedCartIdFromCtx(c)
@@ -106,6 +75,7 @@ func (is *ItemService) getItemsFromCartID(c *gin.Context) (*[]models.Item, error
 	return items, nil
 }
 
+// CalculatePrice calculates total price of a cart
 func (is *ItemService) CalculatePrice(c *gin.Context) (float32, error) {
 	zap.L().Debug("itemservice.CalculatePrice")
 	items, err := is.getItemsFromCartID(c)
@@ -119,7 +89,8 @@ func (is *ItemService) CalculatePrice(c *gin.Context) (float32, error) {
 	return totalPrice, nil
 }
 
-// CheckProduct checks if an item with the given product is existed in the cart. Note that function returns true if NOT EXIST.
+// CheckProduct checks if an item with the given product is existed in the cart
+// Note that function returns true if NOT EXIST.
 func (is *ItemService) CheckProduct(c *gin.Context) (bool, error) {
 
 	sku := c.Param("sku")
@@ -139,6 +110,7 @@ func (is *ItemService) CheckProduct(c *gin.Context) (bool, error) {
 	return true, nil
 }
 
+// Create creates a new item with a product and quantity
 func (is *ItemService) Create(c *gin.Context) (*models.Item, error) {
 	sku := c.Param("sku")
 	quantity := c.Param("quantity")
@@ -178,32 +150,7 @@ func (is *ItemService) Create(c *gin.Context) (*models.Item, error) {
 	return item, nil
 }
 
-func (is *ItemService) Delete(c *gin.Context) (float32, error) {
-
-	sku := c.Param("sku")
-	zap.L().Debug("itemservice.Delete", zap.Reflect("sku", sku))
-
-	parsedCartId, err := is.parsedCartIdFromCtx(c)
-	if err != nil {
-		return -1, err
-	}
-
-	product, err := is.productRepo.GetBySKU(sku)
-	if err != nil {
-		return -1, err
-	}
-
-	err = is.itemRepo.deleteItemWithProductID(product.ID, parsedCartId)
-	if err != nil {
-		return -1, err
-	}
-	totalPrice, err := is.CalculatePrice(c)
-	if err != nil {
-		return -1, err
-	}
-	return totalPrice, nil
-}
-
+// Update updates an item with productSKU and quantity inputs and returns updated total price of the cart
 func (is *ItemService) Update(c *gin.Context) (float32, error) {
 	sku := c.Param("sku")
 	quantity := c.Param("quantity")
@@ -248,6 +195,7 @@ func (is *ItemService) Update(c *gin.Context) (float32, error) {
 
 }
 
+// Order orders items in the cart by updating product stocks and clearing the cart
 func (is *ItemService) Order(c *gin.Context) error {
 
 	orderID, err := is.parsedOrderIdFromCtx(c)
@@ -274,13 +222,10 @@ func (is *ItemService) Order(c *gin.Context) error {
 			return fmt.Errorf("Not enough %s in the stock, please request less than %d", *product.Name, (product.Stock.Number + 1))
 		}
 
-		var mu sync.Mutex
-		mu.Lock()
 		err = is.productRepo.UpdateStock(*sku, *quantity)
 		if err != nil {
 			return err
 		}
-		mu.Unlock()
 
 		err = is.itemRepo.order(&itemsDeref[i], orderID)
 		if err != nil {
@@ -295,28 +240,64 @@ func (is *ItemService) Order(c *gin.Context) error {
 	return nil
 }
 
-func (is *ItemService) ClearCart(c *gin.Context) error {
+// Delete deletes an item with with productSKU and returns updated total price of the cart
+func (is *ItemService) Delete(c *gin.Context) (float32, error) {
 
-	cartID, ok := c.Get("cartID")
-	if !ok {
-		// response.RespondWithError(c, errors.New("Cart data not found"))
-		return errors.New("Cart data not found")
+	sku := c.Param("sku")
+	zap.L().Debug("itemservice.Delete", zap.Reflect("sku", sku))
+
+	parsedCartId, err := is.parsedCartIdFromCtx(c)
+	if err != nil {
+		return -1, err
 	}
+
+	product, err := is.productRepo.GetBySKU(sku)
+	if err != nil {
+		return -1, err
+	}
+
+	err = is.itemRepo.deleteItemWithProductID(product.ID, parsedCartId)
+	if err != nil {
+		return -1, err
+	}
+
+	totalPrice, err := is.CalculatePrice(c)
+	if err != nil {
+		return -1, err
+	}
+	return totalPrice, nil
+}
+
+//parsedCartIdFromCtx get cartID from context and parse it to uuid
+func (is *ItemService) parsedCartIdFromCtx(c *gin.Context) (uuid.UUID, error) {
+	cartID, ok := c.Get("cartID")
+	zap.L().Debug("itemservice.parsedCartIdFromCtx", zap.Reflect("cartID", cartID))
+	if !ok {
+		zap.L().Error("itemservice.parsedCartIdFromCtx failed to fetch cartID", zap.Error(errors.New("cartID can not be fetched from context")))
+		return uuid.Nil, errors.New("Cart data not found")
+	}
+
 	parsedCartId, err := uuid.Parse(fmt.Sprintf("%v", cartID))
 	if err != nil {
-		return err
+		zap.L().Error("itemservice.parsedCartIdFromCtx failed to parse cartID", zap.Error(errors.New("cartID can not be parsed")))
+		return uuid.Nil, err
 	}
-	items, err := is.itemRepo.getItemsInCart(parsedCartId)
-	if err != nil {
-		return err
-	}
-	for i := range *items {
-		itemsDeref := *items
-		err := is.itemRepo.removeFromCart(&itemsDeref[i])
-		if err != nil {
-			return err
-		}
+	return parsedCartId, nil
+}
 
+//parsedOrderIdFromCtx get orderID from context and parse it to uuid
+func (is *ItemService) parsedOrderIdFromCtx(c *gin.Context) (uuid.UUID, error) {
+	orderID, ok := c.Get("orderID")
+	zap.L().Debug("itemservice.parsedOrderIdFromCtx", zap.Reflect("orderID", orderID))
+
+	if !ok {
+		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to fetch orderID", zap.Error(errors.New("orderID can not be fetched from context")))
+		return uuid.Nil, errors.New("Order data not found")
 	}
-	return nil
+	parsedOrderId, err := uuid.Parse(fmt.Sprintf("%v", orderID))
+	if err != nil {
+		zap.L().Error("itemservice.parsedOrderIdFromCtx failed to parse orderID", zap.Error(errors.New("orderID can not be parsed")))
+		return uuid.Nil, err
+	}
+	return parsedOrderId, nil
 }

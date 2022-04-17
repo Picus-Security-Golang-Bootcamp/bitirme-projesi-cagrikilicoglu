@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// orderToResponse converts order database model to response model
 func orderToResponse(o *models.Order) *api.Order {
 	zap.L().Debug("Order.serializer.orderToResponse", zap.Reflect("order", o))
 
@@ -29,6 +30,7 @@ func orderToResponse(o *models.Order) *api.Order {
 
 }
 
+// ordersToResponse converts order database model to response model as a batch
 func ordersToResponse(os *[]models.Order) []*api.Order {
 	zap.L().Debug("Order.serializer.ordersToResponse", zap.Reflect("orders", os))
 	orders := make([]*api.Order, 0)

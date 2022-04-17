@@ -34,6 +34,7 @@ func NewUserHandler(r *gin.RouterGroup, repo UserRepo, auth *auth.Authenticator)
 	r.POST("/refresh", middleware.RefreshMiddleware(h.auth.Cfg.JWTConfig.RefreshSecretKey), h.Refresh)
 }
 
+// create creates a user from the given data
 func (u *userHandler) create(c *gin.Context) {
 
 	zap.L().Debug("User.handler.create")
@@ -79,6 +80,7 @@ func (u *userHandler) create(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusCreated, *tokens)
 }
 
+// login allows a user to login to the system
 func (u *userHandler) login(c *gin.Context) {
 	zap.L().Debug("User.handler.login")
 	loginBody := api.Login{}
@@ -116,6 +118,7 @@ func (u *userHandler) login(c *gin.Context) {
 
 }
 
+// refresh refreshes a user's access token by his/her refresh token input
 func (u *userHandler) Refresh(c *gin.Context) {
 
 	userID, _ := c.Get("userID")
@@ -139,6 +142,7 @@ func (u *userHandler) Refresh(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, *tokens)
 }
 
+// validateCredentials validates user email and password to obey the rule set
 func validateCredentials(email, password string) error {
 	ok := validateEmail(email)
 	if !ok {
@@ -153,11 +157,13 @@ func validateCredentials(email, password string) error {
 	return nil
 }
 
+// validateEmail validates user email by checking the address
 func validateEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
+// validatePassword validates user password by checking length
 func validatePassword(password string) bool {
 	passwordLength := utf8.RuneCountInString(password)
 	if passwordLength >= minPasswordLength && passwordLength <= maxPasswordLength {

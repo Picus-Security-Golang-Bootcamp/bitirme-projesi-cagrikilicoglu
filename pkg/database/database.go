@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Connect connects to the database with configuration input
 func Connect(cfg *config.Config) *gorm.DB {
 	db, err := gorm.Open(postgres.Open(cfg.DBConfig.DataSourceName), &gorm.Config{})
 	if err != nil {

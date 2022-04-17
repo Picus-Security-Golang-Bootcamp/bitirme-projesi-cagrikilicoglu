@@ -25,6 +25,7 @@ func NewCartRepository(db *gorm.DB) CartRepo {
 	return &CartRepository{db: db}
 }
 
+// GetByUserID fetches cart data with its items by userID input
 func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 	var c *models.Cart
 	zap.L().Debug("Cart.repo.getByUserID", zap.Reflect("id", id))
@@ -35,6 +36,7 @@ func (cr *CartRepository) GetByUserID(id string) (*models.Cart, error) {
 	return c, nil
 }
 
+// GetByCartID fetches cart data with its items by cartID input
 func (cr *CartRepository) GetByCartID(id string) (*models.Cart, error) {
 	var c *models.Cart
 	zap.L().Debug("Cart.repo.GetByCartID", zap.Reflect("id", id))
@@ -45,6 +47,7 @@ func (cr *CartRepository) GetByCartID(id string) (*models.Cart, error) {
 	return c, nil
 }
 
+// UpdateTotalPrice updates totalPrice of the cart
 func (cr *CartRepository) UpdateTotalPrice(c *models.Cart, totalPrice float32) error {
 	zap.L().Debug("cart.update.updateTotalPrice", zap.Reflect("cart", c), zap.Reflect("totalPrice", totalPrice))
 

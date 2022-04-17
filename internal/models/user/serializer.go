@@ -9,6 +9,7 @@ import (
 
 var userRole = "user"
 
+/// responseToUser converts user response model to database model
 func responseToUser(u *api.User) (*models.User, error) {
 
 	zap.L().Debug("User.serializer.responseToUser", zap.Reflect("user", u))
@@ -27,6 +28,7 @@ func responseToUser(u *api.User) (*models.User, error) {
 	}, nil
 }
 
+/// getHash encrypts password given by the user for security
 func getHash(pwd []byte) (*string, error) {
 
 	zap.L().Debug("User.serializer.getHash")
@@ -39,13 +41,3 @@ func getHash(pwd []byte) (*string, error) {
 	hashStr := string(hash)
 	return &hashStr, nil
 }
-
-// func userToResponse(u *models.User) *api.User {
-// 	return &api.User{
-// 		Email:     u.Email,
-// 		Password:  u.Password,
-// 		FirstName: &u.FirstName,
-// 		LastName:  &u.LastName,
-// 		ZipCode:   &u.ZipCode,
-// 	}
-// }

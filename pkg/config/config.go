@@ -53,13 +53,6 @@ type Logger struct {
 	Level       string `yaml:"Level"`
 }
 
-// Shopper
-// type Shopper struct {
-// 	MaxItemsForCart     int     `yaml:"MaxItemsForCart"`
-// 	MinPriceForOrder    int     `yaml:"MinPriceForOrder"`
-// 	MaxAllowedCancelDay float32 `yaml:"MaxAllowedCancelDay"`
-// }
-
 // LoadConfig reads configuration from a file
 func LoadConfig(fileName string) (*Config, error) {
 	v := viper.New()

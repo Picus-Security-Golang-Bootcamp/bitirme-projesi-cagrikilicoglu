@@ -21,6 +21,7 @@ func (pr *ProductRepository) Migration() {
 	pr.db.AutoMigrate(&models.Product{})
 }
 
+// create creates a product in the database
 func (pr *ProductRepository) create(p *models.Product) (*models.Product, error) {
 	zap.L().Debug("product.repo.create", zap.Reflect("product", p))
 
@@ -31,6 +32,7 @@ func (pr *ProductRepository) create(p *models.Product) (*models.Product, error) 
 	return p, nil
 }
 
+// create creates products in the database as a batch
 func (pr *ProductRepository) batchCreate(ps []models.Product) ([]models.Product, error) {
 	zap.L().Debug("product.repo.batchCreate", zap.Reflect("products", ps))
 
@@ -41,6 +43,7 @@ func (pr *ProductRepository) batchCreate(ps []models.Product) ([]models.Product,
 	return ps, nil
 }
 
+// getAll fetches products with pagination parameters from the database
 func (pr *ProductRepository) getAll(pageIndex, pageSize int) (*[]models.Product, int, error) {
 
 	zap.L().Debug("product.repo.getAll")
@@ -54,7 +57,7 @@ func (pr *ProductRepository) getAll(pageIndex, pageSize int) (*[]models.Product,
 	return products, int(count), nil
 }
 
-//TODO uuid
+// getByID fetches products by ID from the database
 func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 
 	zap.L().Debug("product.repo.getByID", zap.Reflect("id", id))
@@ -67,6 +70,7 @@ func (pr *ProductRepository) getByID(id string) (*models.Product, error) {
 	return product, nil
 }
 
+// GetBySKU fetches products by SKU from the database
 func (pr *ProductRepository) GetBySKU(sku string) (*models.Product, error) {
 
 	zap.L().Debug("product.repo.GetBySKU", zap.Reflect("SKU", sku))
@@ -79,6 +83,8 @@ func (pr *ProductRepository) GetBySKU(sku string) (*models.Product, error) {
 	return product, nil
 }
 
+// getByName fetches products by name from the database
+// note that the search is elastic
 func (pr *ProductRepository) getByName(name string) (*[]models.Product, error) {
 	zap.L().Debug("product.repo.getByName", zap.Reflect("name", name))
 
@@ -90,6 +96,8 @@ func (pr *ProductRepository) getByName(name string) (*[]models.Product, error) {
 	}
 	return &products, nil
 }
+
+// deleteBySKU deletes a product by SKU from the database
 func (pr *ProductRepository) deleteBySKU(sku string) error {
 	zap.L().Debug("product.repo.deleteBySKU", zap.Reflect("sku", sku))
 
@@ -101,6 +109,7 @@ func (pr *ProductRepository) deleteBySKU(sku string) error {
 	return nil
 }
 
+// updateBySKU updates a product by SKU from the database
 func (pr *ProductRepository) updateBySKU(sku string, p *models.Product) (*models.Product, error) {
 	zap.L().Debug("product.repo.updateBySKU", zap.Reflect("product", p))
 
@@ -111,6 +120,7 @@ func (pr *ProductRepository) updateBySKU(sku string, p *models.Product) (*models
 	return p, nil
 }
 
+// UpdateStock updates stock number of a product by SKU and quantity inputs
 func (pr *ProductRepository) UpdateStock(sku string, quantity uint) error {
 
 	if result := pr.db.Model(models.Product{}).Where("sku = ?", sku).Select("number").Update("number", gorm.Expr("number - ?", quantity)); result.Error != nil {

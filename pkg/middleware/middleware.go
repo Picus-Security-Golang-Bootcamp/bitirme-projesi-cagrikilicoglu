@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AdminAuthMiddleware checks authorization of the request and allows admin to continue
 func AdminAuthMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetHeader("Authorization") != "" {
@@ -32,6 +33,8 @@ func AdminAuthMiddleware(secretKey string) gin.HandlerFunc {
 
 	}
 }
+
+// UserAuthMiddleware checks authorization of the request and allows user to continue
 func UserAuthMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetHeader("Authorization") != "" {
@@ -57,6 +60,7 @@ func UserAuthMiddleware(secretKey string) gin.HandlerFunc {
 	}
 }
 
+// RefreshMiddleware checks authorization to refresh tokens
 func RefreshMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetHeader("Authorization") != "" {

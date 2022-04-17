@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ItemToResponse converts item database model to response model
 func ItemToResponse(i *models.Item) *api.Item {
 	zap.L().Debug("item.serializer.itemToResponse", zap.Reflect("item", i))
 	quantity := uint32(i.Quantity)

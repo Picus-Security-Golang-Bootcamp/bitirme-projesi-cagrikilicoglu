@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// responseToCategory converts category database model to response model.
 func responseToCategory(ac *api.Category) *models.Category {
 	zap.L().Debug("Category.serializer.responseToCategory", zap.Reflect("apiCategories", ac))
 
@@ -15,6 +16,7 @@ func responseToCategory(ac *api.Category) *models.Category {
 	}
 }
 
+// categoriesToResponse converts category response model to database model as a batch
 func categoriesToResponse(cs *[]models.Category) []*api.Category {
 	zap.L().Debug("Category.serializer.categoriesToResponse", zap.Reflect("Categories", cs))
 
@@ -26,6 +28,7 @@ func categoriesToResponse(cs *[]models.Category) []*api.Category {
 	return categories
 }
 
+// categoryToResponse converts category response model to database model
 func categoryToResponse(p *models.Category) *api.Category {
 	zap.L().Debug("Category.serializer.categoriesToResponse", zap.Reflect("Categories", p))
 

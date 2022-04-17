@@ -31,6 +31,8 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository, cfg *config.
 	r.DELETE("/delete/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.deleteBySKU)
 	r.PUT("/update/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.updateBySKU)
 }
+
+// getAll fetches all the products in the database and paginate the results
 func (p *productHandler) getAll(c *gin.Context) {
 
 	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
@@ -46,6 +48,7 @@ func (p *productHandler) getAll(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, paginatedResult)
 }
 
+// getByID fetches a product by ID
 func (p *productHandler) getByID(c *gin.Context) {
 
 	id := c.Param("id")
@@ -60,6 +63,7 @@ func (p *productHandler) getByID(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
+// getBySKU fetches a product by SKU
 func (p *productHandler) getBySKU(c *gin.Context) {
 
 	sku := c.Param("sku")
@@ -73,6 +77,7 @@ func (p *productHandler) getBySKU(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
+// create creates a product by the input in request body
 func (p *productHandler) create(c *gin.Context) {
 	zap.L().Debug("product.handler.create")
 	productBody := &api.Product{}
@@ -97,6 +102,7 @@ func (p *productHandler) create(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusCreated, ProductToResponseForAdmin(product))
 }
 
+// createFromFile reads data from a csv file and create products from it
 func (p *productHandler) createFromFile(c *gin.Context) {
 	zap.L().Debug("product.handler.createFromFile")
 	data, err := c.FormFile("file")
@@ -120,6 +126,7 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusCreated, productsToResponseForAdmin(&products))
 }
 
+// getByName fetches products by name
 func (p *productHandler) getByName(c *gin.Context) {
 	name := c.Query("name")
 	zap.L().Debug("product.handler.getByName", zap.Reflect("name", name))
@@ -137,6 +144,7 @@ func (p *productHandler) getByName(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, ProductsToResponse(products))
 }
 
+// deleteBySKU deletes a product by SKU
 func (p *productHandler) deleteBySKU(c *gin.Context) {
 	sku := c.Param("sku")
 	zap.L().Debug("product.handler.deleteBySKU", zap.Reflect("sku", sku))
@@ -149,6 +157,7 @@ func (p *productHandler) deleteBySKU(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, fmt.Sprintf("Product successfully deleted"))
 }
 
+// updateBySKU updates a product by SKU
 func (p *productHandler) updateBySKU(c *gin.Context) {
 	sku := c.Param("sku")
 	zap.L().Debug("product.handler.updateBySKU", zap.Reflect("sku", sku))

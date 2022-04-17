@@ -19,26 +19,7 @@ func NewCategoryRepository(db *gorm.DB) *CategoryRepository {
 	return &CategoryRepository{db: db}
 }
 
-func (cr *CategoryRepository) create(c *models.Category) (*models.Category, error) {
-	zap.L().Debug("Category.repo.create", zap.Reflect("Category", c))
-
-	if err := cr.db.Create(c).Error; err != nil {
-		zap.L().Error("Category.repo.Create failed to create Category", zap.Error(err))
-		return nil, err
-	}
-	return c, nil
-}
-func (cr *CategoryRepository) batchCreate(cs []models.Category) ([]models.Category, error) {
-	zap.L().Debug("Category.repo.batchCreate", zap.Reflect("Categories", cs))
-
-	if err := cr.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&cs).Error; err != nil {
-		zap.L().Error("Category.repo.batchCreate failed to create Category", zap.Error(err))
-		return nil, err
-	}
-
-	return cs, nil
-}
-
+// getAll fetches categories with pagination parameters from the database
 func (cr *CategoryRepository) getAll(pageIndex, pageSize int) (*[]models.Category, int, error) {
 
 	zap.L().Debug("category.repo.getAll")
@@ -52,6 +33,7 @@ func (cr *CategoryRepository) getAll(pageIndex, pageSize int) (*[]models.Categor
 	return categories, int(count), nil
 }
 
+// getByNameWithProducts fetches product data by category name from the database
 func (cr *CategoryRepository) getByNameWithProducts(name string) (*models.Category, error) {
 	zap.L().Debug("category.repo.getByNameWithProducts", zap.Reflect("name", name))
 
@@ -62,4 +44,27 @@ func (cr *CategoryRepository) getByNameWithProducts(name string) (*models.Catego
 	}
 
 	return category, nil
+}
+
+// create creates a category in the database
+func (cr *CategoryRepository) create(c *models.Category) (*models.Category, error) {
+	zap.L().Debug("Category.repo.create", zap.Reflect("Category", c))
+
+	if err := cr.db.Create(c).Error; err != nil {
+		zap.L().Error("Category.repo.Create failed to create Category", zap.Error(err))
+		return nil, err
+	}
+	return c, nil
+}
+
+// batchCreate creates categories as a batch in the database
+func (cr *CategoryRepository) batchCreate(cs []models.Category) ([]models.Category, error) {
+	zap.L().Debug("Category.repo.batchCreate", zap.Reflect("Categories", cs))
+
+	if err := cr.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&cs).Error; err != nil {
+		zap.L().Error("Category.repo.batchCreate failed to create Category", zap.Error(err))
+		return nil, err
+	}
+
+	return cs, nil
 }

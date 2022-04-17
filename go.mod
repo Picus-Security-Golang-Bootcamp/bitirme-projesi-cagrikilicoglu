@@ -3,6 +3,7 @@ module github.com/cagrikilicoglu/shopping-basket
 go 1.17
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-openapi/errors v0.20.2
 	github.com/go-openapi/strfmt v0.21.2
@@ -12,6 +13,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
 	github.com/spf13/viper v1.10.1
+	github.com/stretchr/testify v1.7.1
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921
 	gorm.io/driver/postgres v1.3.3
@@ -19,7 +21,6 @@ require (
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
@@ -64,7 +65,6 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.mongodb.org/mongo-driver v1.9.0 // indirect

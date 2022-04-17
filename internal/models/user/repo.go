@@ -23,6 +23,7 @@ func NewUserRepository(db *gorm.DB) UserRepo {
 	return &UserRepository{db: db}
 }
 
+// Create creates a new user in the database
 func (ur *UserRepository) Create(u *models.User) (*models.User, error) {
 	zap.L().Debug("User.repo.create", zap.Reflect("User", u))
 
@@ -33,6 +34,7 @@ func (ur *UserRepository) Create(u *models.User) (*models.User, error) {
 	return u, nil
 }
 
+// get fetches user from the database
 func (ur *UserRepository) get(email string) (*models.User, error) {
 	zap.L().Debug("User.repo.get", zap.Reflect("email", email))
 

@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// cartToResponse converts cart database model to response model.
 func cartToResponse(c *models.Cart) *api.Cart {
 	zap.L().Debug("Cart.serializer.cartToResponse", zap.Reflect("cart", c))
 	userIDstr := c.UserID.String()
@@ -23,5 +24,4 @@ func cartToResponse(c *models.Cart) *api.Cart {
 		Items:      apiItems,
 		TotalPrice: &c.TotalPrice,
 	}
-
 }

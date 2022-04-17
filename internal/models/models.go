@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -89,51 +88,57 @@ type Item struct {
 	IsOrdered  bool           `json:"isOrdered" gorm:"default:false"`
 }
 
+type Tokens struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+// Hook for user data: creates a new id for user and and his/her cart
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	u.Cart.ID = uuid.New()
 	return
 }
 
+// Hook for category data: creates a new id for category
 func (c *Category) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = uuid.New()
 	return
 }
 
+// Hook for product data: creates a new id for product
 func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}
 	return
 }
+
+// Hook for item data: creates a new id for item
 func (i *Item) BeforeCreate(tx *gorm.DB) (err error) {
 	i.ID = uuid.New()
 	return
 }
 
+// Hook for order data:
 var (
 	statusPlaced   = "placed"
 	statusCanceled = "canceled"
 )
 
+// creates a new id for order and set its status to placed
 func (o *Order) BeforeCreate(tx *gorm.DB) (err error) {
 	o.ID = uuid.New()
 	o.Status = statusPlaced
 	return
 }
 
+// sets the order's status to canceled when it is deleted
 func (o *Order) AfterDelete(tx *gorm.DB) (err error) {
-
-	zap.L().Debug("order.afterdelete", zap.Reflect("id", o.ID))
 
 	result := tx.Model(&o).Unscoped().Where("id = ?", o.ID).Select("status").Update("status", statusCanceled)
 	if result.Error != nil {
 		return result.Error
 	}
 	return
-}
-
-type Tokens struct {
-	AccessToken  string
-	RefreshToken string
 }

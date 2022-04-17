@@ -55,7 +55,6 @@ func readProductsWithWorkerPool(fileHeader *multipart.FileHeader) ([]models.Prod
 	return products, nil
 }
 
-// TODO fonksiyon commentleri
 // toStruct: creates a product struct as the data from the file is read and send the struct to results channel
 func toStruct(jobs <-chan []string, results chan<- models.Product, wg *sync.WaitGroup) {
 	defer wg.Done()

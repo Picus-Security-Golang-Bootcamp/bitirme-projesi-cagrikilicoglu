@@ -23,6 +23,7 @@ func NewAuthenticator(cfg *config.Config) *Authenticator {
 	return &Authenticator{Cfg: cfg}
 }
 
+// Authenticate returns access and refresh tokens by id, email and role inputs from the user
 func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) (*models.Tokens, error) {
 
 	zap.L().Debug("authenticator.Authenticate.jwtNewWithClaims.Access",
@@ -67,57 +68,18 @@ func (a *Authenticator) Authenticate(id uuid.UUID, email, role string) (*models.
 	return &tokens, err
 }
 
+// VerifyAccessToken verifies the access token by checking secret key
 func (a *Authenticator) VerifyAccessToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	decodedToken := jwtHelper.VerifyToken(token, a.Cfg.JWTConfig.SecretKey)
 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
 }
+
+// VerifyRefreshToken verifies the refresh token by checking secret key
 func (a *Authenticator) VerifyRefreshToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	decodedToken := jwtHelper.VerifyToken(token, a.Cfg.JWTConfig.RefreshSecretKey)
 	response.RespondWithJson(c, http.StatusOK, decodedToken)
 
-}
-
-func (a *Authenticator) Refresh(id uuid.UUID, email, role string) (*models.Tokens, error) {
-
-	zap.L().Debug("authenticator.refresh.jwtaccessclaims",
-		zap.Reflect("id", id),
-		zap.Reflect("email", email),
-		zap.Reflect("role", role))
-	jwtAccessClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": id,
-		"email":  email,
-		"iat":    time.Now().Unix(),
-		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(15 * time.Minute).Unix(),
-		"roles":  role,
-	})
-
-	accessToken, err := jwtHelper.GenerateToken(jwtAccessClaims, a.Cfg.JWTConfig.SecretKey)
-	if err != nil {
-		return nil, err
-	}
-
-	jwtRefreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": id,
-		"email":  email,
-		"iat":    time.Now().Unix(),
-		"iss":    os.Getenv("APP_ENV"),
-		"exp":    time.Now().Add(7 * 24 * time.Hour).Unix(),
-		"roles":  role,
-	})
-
-	refreshToken, err := jwtHelper.GenerateToken(jwtRefreshClaims, a.Cfg.JWTConfig.RefreshSecretKey)
-	if err != nil {
-		return nil, err
-	}
-
-	tokens := models.Tokens{
-		AccessToken:  *accessToken,
-		RefreshToken: *refreshToken,
-	}
-
-	return &tokens, nil
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Shutdown allows the server to shutdown gracefully
 func Shutdown(srv *http.Server, timeout time.Duration) {
 	c := make(chan os.Signal, 1)
 
@@ -27,3 +28,6 @@ func Shutdown(srv *http.Server, timeout time.Duration) {
 	log.Println("shutting down the server")
 	os.Exit(0)
 }
+
+// createAdmin creates an admin to manipulate the database
+// the function is here for test purposes and should only be run in first usage

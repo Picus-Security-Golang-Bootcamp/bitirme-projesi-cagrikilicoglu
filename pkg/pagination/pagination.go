@@ -10,14 +10,10 @@ import (
 )
 
 var (
-	// DefaultPageSize specifies the default page size
 	DefaultPageSize = 10
-	// MaxPageSize specifies the maximum page size
-	MaxPageSize = 100
-	// PageVar specifies the query parameter name for page number
-	PageVar = "page"
-	// PageSizeVar specifies the query parameter name for page size
-	PageSizeVar = "pageSize"
+	MaxPageSize     = 100
+	PageVar         = "page"
+	PageSizeVar     = "pageSize"
 )
 
 // Pages represents a paginated list of data items.
@@ -29,11 +25,7 @@ type Pages struct {
 	Items      interface{} `json:"items"`
 }
 
-// New creates a new Pages instance.
-// The page parameter is 1-based and refers to the current page index/number.
-// The pageSize parameter refers to the number of items on each page.
-// And the total parameter specifies the total number of data items.
-// If total is less than 0, it means total is unknown.
+// NewFromGinRequest creates a new pages instance from gin request and build links to the other pages
 func NewFromGinRequest(c *gin.Context, total int, items interface{}) *Pages {
 	pageIndex, pageSize := GetPaginationParametersFromRequest(c)
 
@@ -58,6 +50,7 @@ func NewFromGinRequest(c *gin.Context, total int, items interface{}) *Pages {
 	return paginatedResult
 }
 
+// GetPaginationParametersFromRequest parses pagination parameters from query
 func GetPaginationParametersFromRequest(c *gin.Context) (pageIndex, pageSize int) {
 	pageIndex = parseInt(c.Query(PageVar), 1)
 	pageSize = parseInt(c.Query(PageSizeVar), DefaultPageSize)
@@ -96,9 +89,6 @@ func (p *Pages) BuildLinkHeader(baseURL string, defaultPageSize int) string {
 }
 
 // BuildLinks returns the first, prev, next, and last links corresponding to the pagination.
-// A link could be an empty string if it is not needed.
-// For example, if the pagination is at the first page, then both first and prev links
-// will be empty.
 func (p *Pages) BuildLinks(baseURL string, defaultPageSize int) [4]string {
 	var links [4]string
 	pageCount := p.PageCount
@@ -129,10 +119,5 @@ func (p *Pages) BuildLinks(baseURL string, defaultPageSize int) [4]string {
 			}
 		}
 	}
-
 	return links
-}
-
-func (p *Pages) SetItems(items interface{}) {
-	p.Items = items
 }

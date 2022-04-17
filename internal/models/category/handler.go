@@ -28,6 +28,7 @@ func NewCategoryHandler(r *gin.RouterGroup, repo *CategoryRepository, cfg *confi
 	r.GET("/:name", h.getProductsByCategoryName)
 }
 
+// getAll fetches all the categories in the database and paginate the results
 func (ch *categoryHandler) getAll(c *gin.Context) {
 
 	pageIndex, pageSize := pagination.GetPaginationParametersFromRequest(c)
@@ -40,10 +41,10 @@ func (ch *categoryHandler) getAll(c *gin.Context) {
 	}
 
 	paginatedResult := pagination.NewFromGinRequest(c, count, categoriesToResponse(categories))
-
 	response.RespondWithJson(c, http.StatusOK, paginatedResult)
 }
 
+// getProductsByCategoryName fetches product data from the database by category name
 func (ch *categoryHandler) getProductsByCategoryName(c *gin.Context) {
 
 	name := c.Param("name")
@@ -54,10 +55,10 @@ func (ch *categoryHandler) getProductsByCategoryName(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	// TODO prdouctları serialize etmek gerekir
 	response.RespondWithJson(c, http.StatusOK, product.ProductsToResponse(&category.Products))
 }
 
+// createFromFile reads data from a csv file and create categories from it
 func (ch *categoryHandler) createFromFile(c *gin.Context) {
 
 	zap.L().Debug("category.handler.createFromFile")
@@ -73,7 +74,6 @@ func (ch *categoryHandler) createFromFile(c *gin.Context) {
 		return
 	}
 
-	// TODO batch create var olanları göster eklenebilir.
 	categories, err := ch.repo.batchCreate(results)
 	if err != nil {
 		response.RespondWithError(c, err)
@@ -83,6 +83,7 @@ func (ch *categoryHandler) createFromFile(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusCreated, categoriesToResponse(&categories))
 }
 
+// create creates a category with category input
 func (ch *categoryHandler) create(c *gin.Context) {
 	zap.L().Debug("category.handler.create")
 	categoryBody := &api.Category{}

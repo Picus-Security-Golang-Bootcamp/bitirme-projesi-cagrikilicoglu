@@ -28,7 +28,3 @@ Logger:
   Development: true
   Encoding: json
   Level: info
-# ShopperConfig:
-#   MaxItemsForCart: 200
-#   MinPriceForOrder: 50
-#   MaxAllowedCancelDay: 14

@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// ProductToResponse converts product database model to response model
 func ProductToResponse(p *models.Product) *api.Product {
 	zap.L().Debug("Product.serializer.ProductToResponse", zap.Reflect("Products", p))
 	return &api.Product{
@@ -18,6 +19,8 @@ func ProductToResponse(p *models.Product) *api.Product {
 	}
 }
 
+// ProductToResponseForAdmin converts product database model to response model for admin
+// note that the result show also the stock number of a product
 func ProductToResponseForAdmin(p *models.Product) *api.Product {
 	zap.L().Debug("Product.serializer.ProductToResponseForAdmin", zap.Reflect("Products", p))
 
@@ -33,6 +36,7 @@ func ProductToResponseForAdmin(p *models.Product) *api.Product {
 	}
 }
 
+/// ProductToResponse converts product database model to response model
 func ProductsToResponse(ps *[]models.Product) []*api.Product {
 	zap.L().Debug("Product.serializer.productsToResponse", zap.Reflect("Products", ps))
 
@@ -43,6 +47,9 @@ func ProductsToResponse(ps *[]models.Product) []*api.Product {
 	}
 	return products
 }
+
+// productsToResponseForAdmin converts product database model to response model as a batch for admin
+// note that the result show also the stock number of a product
 func productsToResponseForAdmin(ps *[]models.Product) []*api.Product {
 	zap.L().Debug("Product.serializer.productsToResponseForAdmin", zap.Reflect("Products", ps))
 
@@ -54,6 +61,7 @@ func productsToResponseForAdmin(ps *[]models.Product) []*api.Product {
 	return products
 }
 
+// responseToProduct converts product response model to database model
 func responseToProduct(ap *api.Product) *models.Product {
 	zap.L().Debug("Product.serializer.responseToCategory", zap.Reflect("apiProducts", ap))
 
