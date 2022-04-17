@@ -9,7 +9,7 @@ import (
 )
 
 // NewLogger creates a new logger using zap
-func NewLogger(config *config.Config) {
+func NewZapLogger(config *config.Config) {
 	logLevel, err := zapcore.ParseLevel(config.Logger.Level)
 	if err != nil {
 		panic(fmt.Sprintf("Unknown log level: %v", logLevel))
