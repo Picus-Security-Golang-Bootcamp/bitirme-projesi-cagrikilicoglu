@@ -1,6 +1,8 @@
 package product
 
 import (
+	"errors"
+
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -93,6 +95,8 @@ func (pr *ProductRepository) deleteBySKU(sku string) error {
 
 	if result := pr.db.Where("sku = ?", sku).Delete(&models.Product{}); result.Error != nil {
 		return result.Error
+	} else if result.RowsAffected < 1 {
+		return errors.New("Product not found")
 	}
 	return nil
 }

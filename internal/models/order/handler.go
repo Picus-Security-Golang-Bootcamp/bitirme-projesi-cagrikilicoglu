@@ -90,6 +90,7 @@ func (oh *orderHandler) cancelOrder(c *gin.Context) {
 	orderIDParsed, err := uuid.Parse(fmt.Sprintf("%v", id))
 	if err != nil {
 		response.RespondWithError(c, err)
+		return
 	}
 
 	order, err := oh.orderRepo.getWithID(orderIDParsed)

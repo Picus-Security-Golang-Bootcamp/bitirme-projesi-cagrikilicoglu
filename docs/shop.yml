@@ -1,25 +1,40 @@
 swagger: "2.0"
 info:
-  description: "This is a sample shopping server.  "
+  description: "This is a sample shopping server."
   version: "1.0.0"
   title: "Swagger Shopping-Cart"
   termsOfService: "http://swagger.io/terms/"
   contact:
     email: "mcagrikilicoglu@gmail.com"
   license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+    name: "MIT"
+    url: "http://opensource.org/licenses/MIT"
 basePath: "/api/v1/shopping-cart-api"
 tags:
-  - name: "products"
-    description: "Everything about Products"
+  - name: "Product"
+    description: "All product operations"
+  - name: "Category"
+    description: "All category operations"
+  - name: "User"
+    description: "All user operations"
+  - name: "Cart"
+    description: "All cart operations"
+  - name: "Order"
+    description: "All order operations"
+  - name: "Api"
+    description: "All operations regarding API itself"
 
 schemes:
   - "https"
   - "http"
+securityDefinitions:
+  Jwt:
+    type: apiKey
+    name: Authorization
+    in: header
 
 paths:
-  /products:
+  /products/:
     get:
       tags:
         - "Product"
@@ -28,7 +43,15 @@ paths:
       operationId: "getProducts"
       produces:
         - "application/json"
-      parameters: []
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "requested page of all products ordered by name"
+          type: string
+        - in: "query"
+          name: "pageSize"
+          description: "requested pageSize to paginate all products"
+          type: "string"
       responses:
         "200":
           description: "successful operation"
@@ -60,29 +83,29 @@ paths:
           description: "Invalid sku supplied"
         "404":
           description: "Product not found"
+  /products/delete/sku/{sku}:
     delete:
       tags:
         - "Product"
       summary: "Delete a product with the given SKU input in the store"
       description: ""
       operationId: "deleteProductWithSKU"
-      produces:
-        - "application/json"
       parameters:
         - in: "path"
           name: "sku"
           description: "SKU of the product to delete"
           required: true
           type: string
+      security:
+        - Jwt: []
       responses:
         "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Product"
-        "400":
-          description: "Invalid sku supplied"
+          description: "Product successfully deleted"
+        "403":
+          description: "You are not allowed to use this endpoint"
         "404":
           description: "Product not found"
+  /products/update/sku/{sku}:
     put:
       tags:
         - "Product"
@@ -103,15 +126,19 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/Product"
+      security:
+        - Jwt: []
       responses:
         "200":
           description: "successful operation"
           schema:
             $ref: "#/definitions/Product"
-        "400":
-          description: "Invalid sku supplied"
+        "403":
+          description: "You are not allowed to use this endpoint"
         "404":
           description: "Product not found"
+        "405":
+          description: "Invalid input"
   /products/id/{id}:
     get:
       tags:
@@ -136,59 +163,7 @@ paths:
           description: "Invalid id supplied"
         "404":
           description: "Product not found"
-    delete:
-      tags:
-        - "Product"
-      summary: "Delete a product with the given ID input in the store"
-      description: ""
-      operationId: "deleteProductWithID"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "path"
-          name: "id"
-          description: "ID of the product to delete"
-          required: true
-          type: string
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Product"
-        "400":
-          description: "Invalid id supplied"
-        "404":
-          description: "Product not found"
-    put:
-      tags:
-        - "Product"
-      summary: "Update a product with the given ID input in the store"
-      description: ""
-      operationId: "updateProductWithID"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "path"
-          name: "id"
-          description: "ID of the product to update"
-          required: true
-          type: string
-        - in: "body"
-          name: "body"
-          description: "Product object that needs to be updated to the store"
-          required: true
-          schema:
-            $ref: "#/definitions/Product"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Product"
-        "400":
-          description: "Invalid id supplied"
-        "404":
-          description: "Product not found"
-  /products/search:
+  /products:
     get:
       tags:
         - "Product"
@@ -210,12 +185,12 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Product"
-        "400":
-          description: "Invalid name"
+        "404":
+          description: "Product not found"
   /products/create:
     post:
       tags:
-        - "product"
+        - "Product"
       summary: "Add a new product to the store"
       description: ""
       operationId: "addProduct"
@@ -230,17 +205,23 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/Product"
+      security:
+        - Jwt: []
       responses:
         "201":
           description: "successful create operation"
           schema:
             $ref: "#/definitions/Product"
+        "400":
+          description: "Product already exist"
+        "403":
+          description: "You are not allowed to use this endpoint"
         "405":
           description: "Invalid input"
   /products/upload:
     post:
       tags:
-        - "product"
+        - "Product"
       summary: "Add new products to the store from a file"
       description: ""
       operationId: "addProducts"
@@ -254,6 +235,8 @@ paths:
           description: "Product objects that needs to be added to the store"
           required: true
           type: file
+      security:
+        - Jwt: []
       responses:
         "201":
           description: "successful create operation"
@@ -261,8 +244,8 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Product"
-        "405":
-          description: "Invalid input"
+        "403":
+          description: "You are not allowed to use this endpoint"
   /categories:
     get:
       tags:
@@ -280,6 +263,28 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Category"
+  /categories/{name}:
+    get:
+      tags:
+        - "Category"
+      summary: "Get all the products of category by category name"
+      description: "Returns all the products of an input category"
+      operationId: "getProductsByCategoryName"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "name"
+          description: "Name of the category of which products will return"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Product"
+        "404":
+          description: "Category not found"
   /categories/create:
     post:
       tags:
@@ -298,17 +303,21 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/Category"
+      security:
+        - Jwt: []
       responses:
         "201":
           description: "successful create operation"
           schema:
             $ref: "#/definitions/Category"
+        "403":
+          description: "You are not allowed to use this endpoint"
         "405":
           description: "Invalid input"
   /categories/upload:
     post:
       tags:
-        - "category"
+        - "Category"
       summary: "Add new categories to the store from a file"
       description: ""
       operationId: "addCategories"
@@ -322,6 +331,8 @@ paths:
           description: "Category objects that needs to be added from a file to the store"
           required: true
           type: file
+      security:
+        - Jwt: []
       responses:
         "201":
           description: "successful create operation"
@@ -329,17 +340,16 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Category"
-        "405":
-          description: "Invalid input"
+        "403":
+          description: "You are not allowed to use this endpoint"
   /signup:
     get:
       tags:
-        - "user"
+        - "User"
       summary: "Register user into the system"
       description: ""
       operationId: "signupUser"
       produces:
-        # - "application/xml"
         - "application/json"
       parameters:
         - in: "body"
@@ -350,29 +360,23 @@ paths:
             $ref: "#/definitions/User"
       responses:
         "201":
-          description: "successful operation"
+          description: "successful create operation"
           schema:
-            type: "string"
-          headers:
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-            X-Expires-After:
+            type: "array"
+            items:
               type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
         "400":
+          description: "User already exist"
+        "500":
           description: "Invalid input"
   /login:
     post:
       tags:
-        - "user"
-      summary: "Logs user into the system"
+        - "User"
+      summary: "Log user into the system"
       description: ""
       operationId: "loginUser"
       produces:
-        # - "application/xml"
         - "application/json"
       parameters:
         - in: "body"
@@ -385,18 +389,32 @@ paths:
         "200":
           description: "successful operation"
           schema:
-            type: "string"
-          headers:
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-            X-Expires-After:
+            type: "array"
+            items:
               type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-        "400":
-          description: "Invalid username/password supplied"
+        "500":
+          description: "Wrong credentials"
+  /refresh:
+    post:
+      tags:
+        - "User"
+      summary: "Refreshes access token of the user with refresh token"
+      description: "Refreshes access token of the user with refresh token"
+      operationId: "refreshAccessToken"
+      produces:
+        - "application/json"
+      parameters: []
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              type: "string"
+        "403":
+          description: "You are not allowed to use this endpoint"
   /cart:
     get:
       tags:
@@ -407,14 +425,173 @@ paths:
       produces:
         - "application/json"
       parameters: []
+      security:
+        - Jwt: []
       responses:
         "200":
           description: "successful operation"
           schema:
             $ref: "#/definitions/Cart"
-        "400":
-          description: "Invalid token supplied"
-
+        "403":
+          description: "You are not allowed to use this endpoint"
+  /cart/add/sku/{sku}/quantity/{quantity}:
+    post:
+      tags:
+        - "Cart"
+      summary: "Add product with given SKU and of given quantity inputs to user's cart"
+      description: "Add item with given sku and of given quantity to cart"
+      operationId: "addItem"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to add"
+          required: true
+          type: string
+        - in: "path"
+          name: "quantity"
+          description: "Quantity of the product to add"
+          required: true
+          type: string
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "Successful Operation"
+          schema:
+            $ref: "#/definitions/Cart"
+        "403":
+          description: "You are not allowed to use this endpoint"
+        "404":
+          description: "Product not found"
+        "500":
+          description: "Product with SKU is already in cart"
+  /cart/update/sku/{sku}/quantity/{quantity}:
+    put:
+      tags:
+        - "Cart"
+      summary: "Update a product in the users cart with a new quantity input"
+      description: "Update product in the cart with a new quantity"
+      operationId: "updateItem"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to add"
+          required: true
+          type: string
+        - in: "path"
+          name: "quantity"
+          description: "New quantity of the product to update"
+          required: true
+          type: string
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "Successful Operation"
+          schema:
+            $ref: "#/definitions/Cart"
+        "403":
+          description: "You are not allowed to use this endpoint"
+        "404":
+          description: "Product not found"
+        "500":
+          description: "Product is not in the cart add first"
+  /cart/delete/sku/{sku}:
+    delete:
+      tags:
+        - "Cart"
+      summary: "Delete a product from the user's cart with SKU input"
+      description: "Delete a product from the user's cart with SKU input"
+      operationId: "deleteItem"
+      parameters:
+        - in: "path"
+          name: "sku"
+          description: "SKU of the product to delete"
+          required: true
+          type: string
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "Product successfully deleted"
+        "403":
+          description: "You are not allowed to use this endpoint"
+        "404":
+          description: "Product not found"
+  /order:
+    post:
+      tags:
+        - "Order"
+      summary: "Order the products that are in currently in user's cart"
+      description: "Order the products that are in currently in user's cart"
+      operationId: "order"
+      produces:
+        - "application/json"
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Order"
+        "403":
+          description: "You are not allowed to use this endpoint"
+        "500":
+          description: "You are not satisfying ordering conditions"
+  /order/id/{id}/cancel:
+    delete:
+      tags:
+        - "Order"
+      summary: "Cancel an order of the user that is placed before"
+      description: "Cancel an order of the user that is placed before"
+      operationId: "cancelOrder"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "ID of the order to cancel"
+          required: true
+          type: string
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "successful operation"
+        "403":
+          description: "You are not allowed to use this endpoint"
+        "404":
+          description: "Order not found"
+        "500":
+          description: "Invalid id supplied"
+  /order/history:
+    get:
+      tags:
+        - "Order"
+      summary: "Get the order history of the user"
+      description: "Get the order history of the user"
+      operationId: "getOrderHistory"
+      parameters: []
+      security:
+        - Jwt: []
+      responses:
+        "200":
+          description: "successful operation"
+        "403":
+          description: "You are not allowed to use this endpoint"
+  /health:
+    get:
+      tags:
+        - "Api"
+      summary: "Check health of the api"
+      description: "Check health of the api"
+      operationId: "checkHealth"
+      parameters: []
+      responses:
+        "200":
+          description: "successful operation"
 definitions:
   Product:
     type: "object"

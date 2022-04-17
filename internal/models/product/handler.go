@@ -23,10 +23,10 @@ func NewProductHandler(r *gin.RouterGroup, repo *ProductRepository, cfg *config.
 
 	h := &productHandler{repo: repo}
 	r.GET("/", h.getAll)
-	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
-	r.POST("/upload", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.createFromFile)
 	r.GET("/id/:id", h.getByID)
 	r.GET("/sku/:sku", h.getBySKU)
+	r.POST("/create", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.create)
+	r.POST("/upload", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.createFromFile)
 	r.GET("", h.getByName)
 	r.DELETE("/delete/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.deleteBySKU)
 	r.PUT("/update/sku/:sku", middleware.AdminAuthMiddleware(cfg.JWTConfig.SecretKey), h.updateBySKU)
@@ -44,6 +44,33 @@ func (p *productHandler) getAll(c *gin.Context) {
 	paginatedResult := pagination.NewFromGinRequest(c, count, ProductsToResponse(products))
 
 	response.RespondWithJson(c, http.StatusOK, paginatedResult)
+}
+
+func (p *productHandler) getByID(c *gin.Context) {
+
+	id := c.Param("id")
+	zap.L().Debug("product.handler.getByID", zap.Reflect("id", id))
+
+	product, err := p.repo.getByID(id)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+
+	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
+}
+
+func (p *productHandler) getBySKU(c *gin.Context) {
+
+	sku := c.Param("sku")
+	zap.L().Debug("product.handler.getBySKU", zap.Reflect("sku", sku))
+
+	product, err := p.repo.GetBySKU(sku)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
 func (p *productHandler) create(c *gin.Context) {
@@ -81,6 +108,7 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 	results, err := readProductsWithWorkerPool(data)
 	if err != nil {
 		response.RespondWithError(c, errors.New("file cannot be read"))
+		return
 	}
 	// TODO batch create var olanları göster eklenebilir.
 	products, err := p.repo.batchCreate(results)
@@ -90,34 +118,6 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 	}
 
 	response.RespondWithJson(c, http.StatusCreated, productsToResponseForAdmin(&products))
-}
-
-// TODO kontrol et
-func (p *productHandler) getByID(c *gin.Context) {
-
-	id := c.Param("id")
-	zap.L().Debug("product.handler.getByID", zap.Reflect("id", id))
-
-	product, err := p.repo.getByID(id)
-	if err != nil {
-		response.RespondWithError(c, err)
-		return
-	}
-
-	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
-}
-
-func (p *productHandler) getBySKU(c *gin.Context) {
-
-	sku := c.Param("sku")
-	zap.L().Debug("product.handler.getBySKU", zap.Reflect("sku", sku))
-
-	product, err := p.repo.GetBySKU(sku)
-	if err != nil {
-		response.RespondWithError(c, err)
-		return
-	}
-	response.RespondWithJson(c, http.StatusOK, ProductToResponse(product))
 }
 
 func (p *productHandler) getByName(c *gin.Context) {
