@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
+	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/config"
 	"github.com/cagrikilicoglu/shopping-basket/pkg/middleware"
@@ -54,7 +55,7 @@ func (ch *categoryHandler) getProductsByCategoryName(c *gin.Context) {
 		return
 	}
 	// TODO prdouctları serialize etmek gerekir
-	response.RespondWithJson(c, http.StatusOK, category.Products)
+	response.RespondWithJson(c, http.StatusOK, product.ProductsToResponse(&category.Products))
 }
 
 func (ch *categoryHandler) createFromFile(c *gin.Context) {
@@ -65,12 +66,6 @@ func (ch *categoryHandler) createFromFile(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	// TODO content type'ı check et
-	// fileType := data.Header.Get("Content-Type")
-	// if fileType != "application/CSV" {
-	// 	response.RespondWithError(c, errors.New("wrong file type"))
-	// 	return
-	// }
 
 	results, err := readCategoriesWithWorkerPool(data)
 	if err != nil {

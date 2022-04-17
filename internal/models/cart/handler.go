@@ -19,6 +19,8 @@ type cartHandler struct {
 	itemService item.Service
 }
 
+var maxItemsForCart = 20
+
 func NewCartHandler(r *gin.RouterGroup, repo CartRepo, is item.Service, cfg *config.Config) {
 	h := &cartHandler{repo: repo,
 		itemService: is}
@@ -39,6 +41,7 @@ func (cr *cartHandler) getCart(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
+
 	totalPrice, err := cr.itemService.CalculatePrice(c)
 	if err != nil {
 		response.RespondWithError(c, err)
@@ -58,6 +61,11 @@ func (cr *cartHandler) addItem(c *gin.Context) {
 	cart, err := cr.getCartFromUserID(c)
 	zap.L().Debug("cart.handler.addItem", zap.Reflect("cart", cart))
 
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+	err = checkItemNumber(cart)
 	if err != nil {
 		response.RespondWithError(c, err)
 		return
@@ -143,5 +151,13 @@ func (cr *cartHandler) getCartFromUserID(c *gin.Context) (*models.Cart, error) {
 	}
 	c.Set("cartID", cart.ID)
 	return cart, nil
+
+}
+
+func checkItemNumber(c *models.Cart) error {
+	if len(c.Items) >= maxItemsForCart {
+		return errors.New("You exceed maximum number of items")
+	}
+	return nil
 
 }

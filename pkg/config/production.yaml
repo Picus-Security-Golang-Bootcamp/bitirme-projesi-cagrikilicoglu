@@ -1,9 +1,9 @@
 ServerConfig:
   AppVersion: 1.0.0
-  Mode: Development
+  Mode: Production
   RoutePrefix: /api/v1/shopping-basket-api
   Debug: false
-  Port: 8080
+  Port: 8081
   TimeoutSecs: 60
   ReadTimeoutSecs: 60
   WriteTimeoutSecs: 12
@@ -11,8 +11,8 @@ ServerConfig:
 
 JWTConfig:
   SessionTime: 3600
-  SecretKey: authorizationKey
-  SecretKetRefresh: refreshAuthorizationKey
+  SecretKey: prodAuthorizationKey
+  SecretKetRefresh: prodRefreshAuthorizationKey
   AccessTokenDurationMins: 15
   RefreshTokenDurationHours: 168
 
@@ -28,7 +28,3 @@ Logger:
   Development: true
   Encoding: json
   Level: info
-# ShopperConfig:
-#   MaxItemsForCart: 200
-#   MinPriceForOrder: 50
-#   MaxAllowedCancelDay: 14

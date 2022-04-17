@@ -28,12 +28,11 @@ import (
 func main() {
 	log.Println("Shopping basket service started")
 
-	// TODO aşağıdaki fonksiyonu hangi environment'ta olduğumu anlamak için kullanıyorum bunun için daha iyi bir yol olaiblir.
+	// Load environment to detect current app environemnt
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file.")
 	}
-	// // //
 
 	configFile := fmt.Sprintf("./pkg/config/%s", os.Getenv("APP_ENV"))
 	cfg, err := config.LoadConfig(configFile)
@@ -123,6 +122,7 @@ func main() {
 	cart.NewCartHandler(cartRouter, cartRepo, itemService, cfg)
 
 	order.NewOrderHandler(baseRooter, orderRepo, cartRepo, itemService, cfg)
+
 	// CreateAdmin(userRepo)
 	// TODO aşağıdaki fonksiyonu kontrol et
 	go func() {

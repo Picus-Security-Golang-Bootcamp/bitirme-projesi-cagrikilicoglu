@@ -26,7 +26,6 @@ type ItemRepository struct {
 }
 
 func (ir *ItemRepository) Migration() {
-	zap.L().Debug("item.repo.migration")
 	ir.db.AutoMigrate(&models.Item{})
 }
 

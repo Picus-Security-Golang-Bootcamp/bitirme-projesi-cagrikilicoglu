@@ -18,7 +18,10 @@ import (
 )
 
 // TODO aşağıdakini başka bir yere taşıyabilir miyiz? config gibi
-var maxAllowedCancelDay = 14
+var (
+	maxAllowedCancelDay = 14
+	minOrderPrice       = 50
+)
 
 type orderHandler struct {
 	orderRepo   *OrderRepository
@@ -50,7 +53,12 @@ func (oh *orderHandler) placeOrder(c *gin.Context) {
 		return
 	}
 
-	order := createOrderFromCart(cart)
+	order, err := createOrderFromCart(cart)
+	if err != nil {
+		response.RespondWithError(c, err)
+		return
+	}
+
 	err = oh.orderRepo.Create(order)
 	if err != nil {
 		response.RespondWithError(c, err)
@@ -124,11 +132,14 @@ func (oh *orderHandler) getOrders(c *gin.Context) {
 
 }
 
-func createOrderFromCart(c *models.Cart) *models.Order {
+func createOrderFromCart(c *models.Cart) (*models.Order, error) {
+	if c.TotalPrice < float32(minOrderPrice) {
+		return nil, errors.New("Cart is below minimum order price of 50")
+	}
 	return &models.Order{
 		UserID:     c.UserID,
 		TotalPrice: c.TotalPrice,
-	}
+	}, nil
 }
 
 func (oh *orderHandler) getCartFromUserID(c *gin.Context) (*models.Cart, error) {

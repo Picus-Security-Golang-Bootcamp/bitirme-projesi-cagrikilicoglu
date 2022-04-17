@@ -41,7 +41,7 @@ func (p *productHandler) getAll(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	paginatedResult := pagination.NewFromGinRequest(c, count, productsToResponse(products))
+	paginatedResult := pagination.NewFromGinRequest(c, count, ProductsToResponse(products))
 
 	response.RespondWithJson(c, http.StatusOK, paginatedResult)
 }
@@ -77,12 +77,7 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	// TODO content type'ı check et
-	// fileType := data.Header.Get("Content-Type")
-	// if fileType != "application/CSV" {
-	// 	response.RespondWithError(c, errors.New("wrong file type"))
-	// 	return
-	// }
+
 	results, err := readProductsWithWorkerPool(data)
 	if err != nil {
 		response.RespondWithError(c, errors.New("file cannot be read"))
@@ -139,7 +134,7 @@ func (p *productHandler) getByName(c *gin.Context) {
 		response.RespondWithError(c, err)
 		return
 	}
-	response.RespondWithJson(c, http.StatusOK, productsToResponse(products))
+	response.RespondWithJson(c, http.StatusOK, ProductsToResponse(products))
 }
 
 func (p *productHandler) deleteBySKU(c *gin.Context) {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/mail"
+	"unicode/utf8"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/api"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/response"
@@ -15,6 +16,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var minPasswordLength = 8
+var maxPasswordLength = 64
 
 type userHandler struct {
 	repo UserRepo
@@ -47,11 +51,10 @@ func (u *userHandler) create(c *gin.Context) {
 		return
 	}
 
-	zap.L().Debug("User.handler.create.validateEmail")
-	ok := validateEmail(*userBody.Email)
-	if !ok {
-		zap.L().Error("User.handler.create.validateEmail invalid email", zap.Reflect("email", *userBody.Email))
-		response.RespondWithError(c, errors.New("Email is not valid"))
+	zap.L().Debug("User.handler.create.validateCredentials")
+	err := validateCredentials(*userBody.Email, *userBody.Password)
+	if err != nil {
+		response.RespondWithError(c, err)
 		return
 	}
 
@@ -136,7 +139,29 @@ func (u *userHandler) Refresh(c *gin.Context) {
 	response.RespondWithJson(c, http.StatusOK, *tokens)
 }
 
+func validateCredentials(email, password string) error {
+	ok := validateEmail(email)
+	if !ok {
+		zap.L().Error("User.handler.validateEmail invalid email", zap.Reflect("email", email))
+		return errors.New("Email is not valid")
+	}
+	ok = validatePassword(password)
+	if !ok {
+		zap.L().Error("User.handler.validateEmail invalid email", zap.Reflect("email", email))
+		return errors.New("Password should be between 8 and 64 characters")
+	}
+	return nil
+}
+
 func validateEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
+}
+
+func validatePassword(password string) bool {
+	passwordLength := utf8.RuneCountInString(password)
+	if passwordLength >= minPasswordLength && passwordLength <= maxPasswordLength {
+		return true
+	}
+	return false
 }

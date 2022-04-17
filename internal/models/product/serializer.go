@@ -33,7 +33,7 @@ func ProductToResponseForAdmin(p *models.Product) *api.Product {
 	}
 }
 
-func productsToResponse(ps *[]models.Product) []*api.Product {
+func ProductsToResponse(ps *[]models.Product) []*api.Product {
 	zap.L().Debug("Product.serializer.productsToResponse", zap.Reflect("Products", ps))
 
 	products := make([]*api.Product, 0)

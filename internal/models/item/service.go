@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/cagrikilicoglu/shopping-basket/internal/models"
 	"github.com/cagrikilicoglu/shopping-basket/internal/models/product"
@@ -273,10 +274,13 @@ func (is *ItemService) Order(c *gin.Context) error {
 			return fmt.Errorf("Not enough %s in the stock, please request less than %d", *product.Name, (product.Stock.Number + 1))
 		}
 
+		var mu sync.Mutex
+		mu.Lock()
 		err = is.productRepo.UpdateStock(*sku, *quantity)
 		if err != nil {
 			return err
 		}
+		mu.Unlock()
 
 		err = is.itemRepo.order(&itemsDeref[i], orderID)
 		if err != nil {
