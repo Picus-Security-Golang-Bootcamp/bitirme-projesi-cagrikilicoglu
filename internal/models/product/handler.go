@@ -116,7 +116,7 @@ func (p *productHandler) createFromFile(c *gin.Context) {
 		response.RespondWithError(c, errors.New("file cannot be read"))
 		return
 	}
-	// TODO batch create var olanları göster eklenebilir.
+
 	products, err := p.repo.batchCreate(results)
 	if err != nil {
 		response.RespondWithError(c, err)

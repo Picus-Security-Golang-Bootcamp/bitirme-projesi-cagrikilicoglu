@@ -343,7 +343,7 @@ paths:
         "403":
           description: "You are not allowed to use this endpoint"
   /signup:
-    get:
+    post:
       tags:
         - "User"
       summary: "Register user into the system"
