@@ -6,13 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type CartRepo interface {
-	GetByUserID(id string) (*models.Cart, error)
-	GetByCartID(id string) (*models.Cart, error)
-	UpdateTotalPrice(c *models.Cart, totalPrice float32) error
-	Migration()
-}
-
 type CartRepository struct {
 	db *gorm.DB
 }
@@ -21,7 +14,7 @@ func (cr *CartRepository) Migration() {
 	cr.db.AutoMigrate(&models.Cart{})
 }
 
-func NewCartRepository(db *gorm.DB) CartRepo {
+func NewCartRepository(db *gorm.DB) *CartRepository {
 	return &CartRepository{db: db}
 }
 

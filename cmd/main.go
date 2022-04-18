@@ -33,6 +33,7 @@ func main() {
 
 }
 
+// Sets the execution parameters
 func Execute() {
 
 	// Load environment to detect current app environemnt
@@ -130,7 +131,7 @@ func checkHealth(c *gin.Context) {
 //////////////////////////------------------------------------//////////////////////////
 // createAdmin creates an admin to manipulate the database
 // the function is here for test purposes and should only be run in first usage
-func CreateAdmin(userRepo user.UserRepo) {
+func CreateAdmin(userRepo *user.UserRepository) {
 	admin := "admin1234.com"
 	adminPass := getHash([]byte("admin1234"))
 	u := models.User{

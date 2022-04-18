@@ -24,11 +24,11 @@ var (
 
 type orderHandler struct {
 	orderRepo   *OrderRepository
-	cartRepo    cart.CartRepo
+	cartRepo    *cart.CartRepository
 	itemService item.Service
 }
 
-func NewOrderHandler(r *gin.RouterGroup, orderRepo *OrderRepository, cartRepo cart.CartRepo, is item.Service, cfg *config.Config) {
+func NewOrderHandler(r *gin.RouterGroup, orderRepo *OrderRepository, cartRepo *cart.CartRepository, is item.Service, cfg *config.Config) {
 	h := &orderHandler{orderRepo: orderRepo,
 		cartRepo:    cartRepo,
 		itemService: is}

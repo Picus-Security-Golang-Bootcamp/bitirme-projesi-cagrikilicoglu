@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -23,7 +22,7 @@ type Suite struct {
 	DB   *gorm.DB
 	mock sqlmock.Sqlmock
 
-	repository CartRepo
+	repository *CartRepository
 	cart1      *models.Cart
 }
 
@@ -123,33 +122,6 @@ func (s *Suite) TestCartRepository_GetByCartID_Error() {
 	require.Error(s.T(), err)
 	require.Empty(s.T(), res)
 }
-
-func (s *Suite) TestCartRepository_GetByUserID() {
-	var (
-		query_1 = `SELECT * FROM "carts" WHERE user_id = $1 AND "carts"."deleted_at" IS NULL ORDER BY "carts"."id" LIMIT 1`
-		query_2 = `SELECT * FROM "items" WHERE "items"."cart_id" = $1 AND is_ordered = $2 AND "items"."deleted_at" IS NULL`
-		row_1   = sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "id", "user_id", "total_price"}).
-			AddRow(cart.CreatedAt, cart.UpdatedAt, cart.DeletedAt, cart.ID.String(), cart.UserID.String(), cart.TotalPrice)
-		row_2 = sqlmock.NewRows([]string{"cart_id", "is_ordered"}).
-			AddRow(item_1.CartID, item_1.IsOrdered)
-	)
-
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		query_1)).
-		WithArgs(cart.UserID.String()).
-		WillReturnRows(row_1)
-
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		query_2)).
-		WithArgs(item_1.CartID.String(), item_1.IsOrdered).
-		WillReturnRows(row_2)
-
-	res, err := s.repository.GetByUserID(cart.UserID.String())
-	zap.L().Debug("test", zap.Reflect("res", res))
-
-	require.NoError(s.T(), err)
-	require.True(s.T(), reflect.DeepEqual(&cart, res))
-}
 func (s *Suite) TestCartRepository_GetByUserID_Error() {
 	var (
 		query_1 = `SELECT * FROM "carts" WHERE user_id = $1 AND "carts"."deleted_at" IS NULL ORDER BY "carts"."id" LIMIT 1`
@@ -173,6 +145,34 @@ func (s *Suite) TestCartRepository_GetByUserID_Error() {
 	require.Empty(s.T(), res)
 }
 
+// func (s *Suite) TestCartRepository_GetByUserID() {
+// 	var (
+// 		query_1 = `SELECT * FROM "carts" WHERE user_id = $1 AND "carts"."deleted_at" IS NULL ORDER BY "carts"."id" LIMIT 1`
+// 		query_2 = `SELECT * FROM "items" WHERE "items"."cart_id" = $1 AND is_ordered = $2 AND "items"."deleted_at" IS NULL`
+// 		row_1   = sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "id", "user_id", "total_price"}).
+// 			AddRow(cart.CreatedAt, cart.UpdatedAt, cart.DeletedAt, cart.ID.String(), cart.UserID.String(), cart.TotalPrice)
+// 		row_2 = sqlmock.NewRows([]string{"cart_id", "is_ordered"}).
+// 			AddRow(item_1.CartID, item_1.IsOrdered)
+// 	)
+
+// 	s.mock.ExpectQuery(regexp.QuoteMeta(
+// 		query_1)).
+// 		WithArgs(cart.UserID.String()).
+// 		WillReturnRows(row_1)
+
+// 	s.mock.ExpectQuery(regexp.QuoteMeta(
+// 		query_2)).
+// 		WithArgs(item_1.CartID.String(), item_1.IsOrdered).
+// 		WillReturnRows(row_2)
+
+// 	res, err := s.repository.GetByUserID(cart.UserID.String())
+// 	zap.L().Debug("test", zap.Reflect("res", res))
+
+// 	require.NoError(s.T(), err)
+// 	require.True(s.T(), reflect.DeepEqual(&cart, res))
+// }
+
+// // https://github.com/DATA-DOG/go-sqlmock/issues/118
 // func (s *Suite) TestCartRepository_UpdateTotalPrice() {
 // 	var (
 // 		query_1 = `UPDATE "carts" SET total_price = $1 WHERE id = $2 AND "carts"."deleted_at" IS NULL`

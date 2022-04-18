@@ -21,11 +21,11 @@ var minPasswordLength = 8
 var maxPasswordLength = 64
 
 type userHandler struct {
-	repo UserRepo
+	repo *UserRepository
 	auth *auth.Authenticator
 }
 
-func NewUserHandler(r *gin.RouterGroup, repo UserRepo, auth *auth.Authenticator) {
+func NewUserHandler(r *gin.RouterGroup, repo *UserRepository, auth *auth.Authenticator) {
 	h := &userHandler{repo: repo,
 		auth: auth}
 

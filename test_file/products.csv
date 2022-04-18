@@ -1,5 +1,5 @@
 categoryName,name,price,stock/sku,stock/number
-Shoes,Nike Air Force 1,76,213DS,20
+Sneakers,Nike Air Force 1,76,213DS,20
 Perfumes,Giorgio Armani Acqua Di Gio,60,2131S,20
 Perfumes,YSL La Nuit,50,UY21O,50
 Books,Utopia,12,B122D,100
@@ -7,14 +7,14 @@ Books,Why Nations Fail?,20,C834Q,20
 Perfumes,Channel Bleu,40,G8911,40
 TVs,LG Oled TV 2,1760,2SA1S,10
 Socks,Happysocks Green,3,ASFG5,100
-Shoes,Nike Pegasus,60,223DS,20
-Shoes,Adidas Superstar, 75,109ED,30
+Sneakers,Nike Pegasus,60,223DS,20
+Sneakers,Adidas Superstar, 75,109ED,30
 Socks,Happysocks Red,3,ASFG6,100
 Speakers,JBL Go,45,KSD21,15
 Speakers,JBL Clip 3,60,KSD22,10
 Speakers,Bang & Olufsen BeoPlay A1,120,OLP98,5
 Speakers,Bang & Olufsen P3,200,OLP99,3
-Shoes,Nike AirMax Hearts,105,2DDDS,20
+Sneakers,Nike AirMax Hearts,105,2DDDS,20
 Tables,Ikea Matt,70,TY782,50
 Phones,Apple iPhone 13,1200,APP13,20
 Phones,Apple iPphone X,700,APP10,10
@@ -48,4 +48,4 @@ Jewelry,Gold Necklace,200,GOLD1,5
 Jewelry,Silver Ring,10,SLV55,50
 Jeans,Levis 512,70,LV6ID,20
 Books,Brave New World,30,BOYKF,110
-Shoes,Nike Downshifter,50,DWNS6,20
+Sneakers,Nike Downshifter,50,DWNS6,20

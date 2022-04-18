@@ -22,7 +22,7 @@ type Suite struct {
 	DB   *gorm.DB
 	mock sqlmock.Sqlmock
 
-	repository UserRepo
+	repository *UserRepository
 	user       *models.User
 }
 
@@ -46,10 +46,6 @@ func (s *Suite) SetupSuite() {
 	require.NoError(s.T(), err)
 	s.repository = NewUserRepository(s.DB)
 }
-
-// func (s *Suite) AfterTest(_, _ string) {
-// 	require.True(s.T(), s.mock.ExpectationsWereMet())
-// }
 
 func TestInit(t *testing.T) {
 	suite.Run(t, new(Suite))

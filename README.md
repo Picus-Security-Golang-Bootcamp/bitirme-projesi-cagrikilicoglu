@@ -123,46 +123,6 @@ To use Shopping Cart Api, follow these steps:
 
 The app provides the following endpoints:
 
-#### Product
-
-- `GET /api/v1/shopping-cart-api/products/` : list all the products with pagination parameters supplied by the user. If no pagination parameters are supplied, the endpoint uses defaults.<br>Example request: `GET /api/v1/shopping-cart-api/products/?page=3&pageSize=5`
-  requests the third page of all the products ordered by name and divided by groups of five.
-
-- `GET /api/v1/shopping-cart-api/products/sku/{sku}` : list the product with product SKU parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products/sku/213DS`
-  requests product with SKU "213DS".
-
-- `GET /api/v1/shopping-cart-api/products/id/{id}` : list the product with product ID parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products/sku/0f60fc10-4bed-4fcd-a5fe-d064a1a915cc`
-  requests product with ID "0f60fc10-4bed-4fcd-a5fe-d064a1a915cc".
-
-- `GET /api/v1/shopping-cart-api/products?name=?` : list the product/s with name parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products?name=MacBook`
-  requests product/s whose name includes "MacBook". The search is elastic.
-
-- `POST /api/v1/shopping-cart-api/products/create` : creates a product supplied in the request body. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `POST /api/v1/shopping-cart-api/products/create`
-  requests body: {
-  "categoryName": "Shoes",
-  "name": "Nike Air Force 1",
-  "price": 76,
-  "stock": {
-  "number": 20,
-  "sku": "213DS",
-  }
-  }
-
-- `POST /api/v1/shopping-cart-api/products/upload` : creates products from a csv file uploaded in the request body as a form file. The endpoint is only authorized for admin. Authorization token must be provided in the request header.
-
-- `PUT /api/v1/shopping-cart-api/products/update/sku/{sku}` : updates a product supplied in the request body. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `/api/v1/shopping-cart-api/products/update/sku/213DS`
-  requests body: {
-  "categoryName": "Shoes",
-  "name": "Nike Air Force 1",
-  "price": 120,
-  "stock": {
-  "number": 50,
-  "sku": "213DS",
-  }
-  }
-
-- `DELETE /api/v1/shopping-cart-api/products/delete/sku/{sku}` : deletes a product with SKU parameter. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `DELETE /api/v1/shopping-cart-api/products/delete/sku/213DS`
-
 #### Category
 
 - `GET /api/v1/shopping-cart-api/categories` : list all the categories with pagination parameters supplied by the user. If no pagination parameters are supplied, the endpoint uses defaults.<br>Example request: `GET /api/v1/shopping-cart-api/categories/?page=3&pageSize=5`
@@ -180,6 +140,46 @@ The app provides the following endpoints:
   }
 
 - `POST /api/v1/shopping-cart-api/categories/upload` : creates categories from a csv file uploaded in the request body as a form file. The endpoint is only authorized for admin. Authorization token must be provided in the request header.
+
+#### Product
+
+- `GET /api/v1/shopping-cart-api/products/` : list all the products with pagination parameters supplied by the user. If no pagination parameters are supplied, the endpoint uses defaults.<br>Example request: `GET /api/v1/shopping-cart-api/products/?page=3&pageSize=5`
+  requests the third page of all the products ordered by name and divided by groups of five.
+
+- `GET /api/v1/shopping-cart-api/products/sku/{sku}` : list the product with product SKU parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products/sku/213DS`
+  requests product with SKU "213DS".
+
+- `GET /api/v1/shopping-cart-api/products/id/{id}` : list the product with product ID parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products/id/0f60fc10-4bed-4fcd-a5fe-d064a1a915cc`
+  requests product with ID "0f60fc10-4bed-4fcd-a5fe-d064a1a915cc".
+
+- `GET /api/v1/shopping-cart-api/products?name=?` : list the product/s with name parameter.<br>Example request: `GET /api/v1/shopping-cart-api/products?name=MacBook`
+  requests product/s whose name includes "MacBook". The search is elastic.
+
+- `POST /api/v1/shopping-cart-api/products/create` : creates a product supplied in the request body. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `POST /api/v1/shopping-cart-api/products/create`
+  requests body: {
+  "categoryName": "Sneakers",
+  "name": "Nike Air Force 1",
+  "price": 76,
+  "stock": {
+  "number": 20,
+  "sku": "213DS"
+  }
+  }
+
+- `POST /api/v1/shopping-cart-api/products/upload` : creates products from a csv file uploaded in the request body as a form file. The endpoint is only authorized for admin. Authorization token must be provided in the request header.
+
+- `PUT /api/v1/shopping-cart-api/products/update/sku/{sku}` : updates a product supplied in the request body. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `/api/v1/shopping-cart-api/products/update/sku/213DS`
+  requests body: {
+  "categoryName": "Sneakers",
+  "name": "Nike Air Force 1",
+  "price": 120,
+  "stock": {
+  "number": 50,
+  "sku": "213DS"
+  }
+  }
+
+- `DELETE /api/v1/shopping-cart-api/products/delete/sku/{sku}` : deletes a product with SKU parameter. The endpoint is only authorized for admin. Authorization token must be provided in the request header.<br>Example request: `DELETE /api/v1/shopping-cart-api/products/delete/sku/213DS`
 
 #### User
 
