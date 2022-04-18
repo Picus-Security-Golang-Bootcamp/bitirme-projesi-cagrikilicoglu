@@ -2,9 +2,9 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/scottydocs/README-template.md)
 ![GitHub contributors](https://img.shields.io/github/contributors/scottydocs/README-template.md)
-![GitHub stars](https://img.shields.io/github/stars/scottydocs/README-template.md?style=social)
-![GitHub forks](https://img.shields.io/github/forks/scottydocs/README-template.md?style=social)
-![Twitter Follow](https://img.shields.io/twitter/follow/scottydocs?style=social)
+![GitHub stars](https://img.shields.io/github/stars/Picus-Security-Golang-Bootcamp/bitirme-projesi-cagrikilicoglu?style=social)
+![GitHub forks](https://img.shields.io/github/forks/Picus-Security-Golang-Bootcamp/bitirme-projesi-cagrikilicoglu?style=social)
+![Twitter Follow](https://img.shields.io/github/follow/cagrikilicoglu?style=social)
 
 Shopping cart api simulates an e-commerce shopping cart that allows admin to create products and categories and user to do order products.
 
@@ -129,13 +129,10 @@ The app provides the following endpoints:
 
 #### Product
 
-```
-`GET /api/v1/shopping-cart-api/products/` : list all the products with pagination parameters supplied by the user. If no pagination parameters are supplied, the endpoint uses defaults.
+- `GET /api/v1/shopping-cart-api/products/` : list all the products with pagination parameters supplied by the user. If no pagination parameters are supplied, the endpoint uses defaults. ..
 
 Example request: `GET /api/v1/shopping-cart-api/products/?page=3&pageSize=5`
 requests the third page of all the products ordered by name and divided by groups of five.
-
-```
 
 ```
 `GET /api/v1/shopping-cart-api/products/sku/{sku}` : list the product with product SKU parameter.
@@ -337,7 +334,7 @@ Thanks to the following people who have contributed to this project:
 
 ## Links
 
-[project repository]: https://github.com/Picus-Security-Golang-Bootcamp/bitirme-projesi-cagrikilicoglu
+[project repository](https://github.com/Picus-Security-Golang-Bootcamp/bitirme-projesi-cagrikilicoglu)
 
 ## License
 
